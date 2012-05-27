@@ -1,0 +1,51 @@
+<class name="distreboot">
+  <method name="instance">
+    <comment>
+      //! A command from another invocation sent to the singleton instance.
+    </comment>
+
+    <param>
+      <comment>
+	//! The other invocation's uid
+      </comment>
+
+      <decl>uid_t <name>uid</name></decl>
+    </param>
+
+    <param type="class">
+      <comment>
+	//! The invocation's arguments.
+      </comment>
+
+      <decl>args <name>command</name></decl>
+    </param>
+
+    <param type="class">
+      <comment>
+	//! The return value to the original invocation
+      </comment>
+
+      <decl>ret <name>retArg</name></decl>
+    </param>
+
+    <param type="class">
+      <comment>
+	//! Invoke flag->processed() to indicate that the request was processed
+      </comment>
+
+      <decl>x::singletonapp::processed <name>flag</name></decl>
+    </param>
+
+    <param type="class">
+      <comment>
+	//! Request mcguffin
+
+	//! When this object goes out of scope and gets destroyed, the
+	//! "ret" and "flag" gets sent back to the original invocation.
+      </comment>
+
+      <decl>x::ref&lt;x::obj&gt; <name>mcguffin</name></decl>
+    </param>
+
+  </method>
+</class>
