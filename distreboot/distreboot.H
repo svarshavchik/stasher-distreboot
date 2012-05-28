@@ -5,11 +5,27 @@
 #include <x/fd.H>
 #include <x/eventqueuemsgdispatcher.H>
 #include <x/managedsingletonapp.H>
+#include <x/logger.H>
+
+#include <stasher/client.H>
 
 // The main class. It's an application singleton.
 
 class distrebootObj : public x::eventqueuemsgdispatcherObj {
 
+	LOG_CLASS_SCOPE;
+
+	stasher::client *client; // On the executing thread's stack
+
+	class serverStatusCallbackObj;
+
+	stasher::req_stat_t	connection_status;
+	stasher::clusterstate	connection_state;
+	stasher::userhelo	connection_info;
+
+	std::string nodename;
+	bool connection_state_received;
+	bool connection_info_received;
 public:
 
 	// Arguments to the singleton's invocation

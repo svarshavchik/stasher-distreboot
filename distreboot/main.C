@@ -10,12 +10,6 @@ int main(int argc, char **argv)
 
 	auto parser=opts.parse(argc, argv);
 
-	if (!opts.start->value && !opts.stop->value)
-	{
-		parser->usage(std::wcout);
-		exit(1);
-	}
-
 	distreboot::base::args args=distreboot::base::args
 		::create(opts.start->value,
 			 opts.stop->value,

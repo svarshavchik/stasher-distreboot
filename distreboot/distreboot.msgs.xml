@@ -46,6 +46,42 @@
 
       <decl>x::ref&lt;x::obj&gt; <name>mcguffin</name></decl>
     </param>
-
   </method>
+
+  <method name="connection_update">
+    <comment>//! Managed server status callback update</comment>
+
+    <param>
+      <comment>
+	//! Current status of the connection with the server
+      </comment>
+
+      <decl>stasher::req_stat_t <name>status</name></decl>
+    </param>
+  </method>
+
+  <method name="serverstate">
+    <comment>//! Managed server status callback update</comment>
+
+    <param type="class">
+      <comment>
+	//! Current status of the connection with the server
+      </comment>
+
+      <decl>stasher::clusterstate <name>state</name></decl>
+    </param>
+  </method>
+
+  <method name="serverinfo">
+    <comment>//! Managed server status callback</comment>
+
+    <param type="class">
+      <comment>
+	//! Server connection nifo
+      </comment>
+
+      <decl>stasher::userhelo <name>serverinfo</name></decl>
+    </param>
+  </method>
+
 </class>
