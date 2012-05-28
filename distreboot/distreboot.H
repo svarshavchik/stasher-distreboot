@@ -15,6 +15,7 @@ class distrebootObj : public x::eventqueuemsgdispatcherObj {
 
 	LOG_CLASS_SCOPE;
 
+protected:
 	stasher::client *client; // On the executing thread's stack
 
 	class serverStatusCallbackObj;
@@ -36,6 +37,8 @@ public:
 		bool start; // --start command line option
 		bool stop;  // --stop
 		std::string node;  // --repo
+
+		std::string forcenodename; // Used by regression tests
 
 		argsObj() {}
 		argsObj(bool startArg, bool stopArg,

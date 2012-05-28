@@ -56,7 +56,7 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 	if (!args->start)
 		return ret::create("The daemon is not running", 1);
 
-	nodename="";
+	nodename=args->forcenodename;
 
 	stasher::client clientInstance=stasher::client::base
 		::connect_client( ({

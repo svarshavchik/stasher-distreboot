@@ -1,10 +1,19 @@
 @LIBX_AM@
 
-$(call MSGDISPATCHER_GEN,distreboot.msgs,all)
+$(call MSGDISPATCHER_GEN,distreboot.msgs,all,dispatch=protected messages=protected)
 $(call OPTIONS_GEN,distreboot.opts.H,distreboot.opts.xml)
+$(call OPTIONS_GEN,tst.opts.H,tst.opts.xml)
 
-noinst_PROGRAMS=distreboot
+noinst_LIBRARIES=libdistreboot.a
+libdistreboot_a_SOURCES=distreboot.C
 
-distreboot_SOURCES=distreboot.C main.C
-distreboot_LDADD=-lstasher-client -lx
+noinst_PROGRAMS=distreboot connect.tst
 
+distreboot_SOURCES=main.C
+distreboot_LDADD=libdistreboot.a -lstasher-client -lx
+
+connect_tst_SOURCES=connect.tst.C tst.C
+connect_tst_LDADD=libdistreboot.a -lstasher-client -lx
+
+check-am:
+	./connect.tst

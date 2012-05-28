@@ -15,5 +15,8 @@ distreboot.opts.H
 install-sh
 missing
 stamp-h1
+tst.opts.H
 *~
+*.a
 *.o
+*.tst
