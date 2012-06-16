@@ -3,14 +3,19 @@
 #include <x/fditer.H>
 #include <x/deserialize.H>
 #include <x/serialize.H>
+#include <x/ymdhms.H>
 #include <stasher/managedserverstatuscallback.H>
 #include <stasher/manager.H>
+#include <stasher/versionedput.H>
 
 #include <iostream>
 #include <sstream>
 #include "distreboot.H"
 
 LOG_CLASS_INIT(distrebootObj);
+
+x::property::value<x::hms>
+distrebootObj::heartbeat_interval(L"heartbeat", x::hms(0, 10, 0));
 
 class distrebootObj::serverStatusCallbackObj
 	: public stasher::managedserverstatuscallbackObj {
@@ -85,6 +90,28 @@ std::string distrebootObj::heartbeatObj::toString() const
 	return s;
 }
 
+distrebootObj::currentHeartbeatObj
+::currentHeartbeatObj(const distreboot &instanceArg) : instance(instanceArg)
+
+{
+}
+
+distrebootObj::currentHeartbeatObj::~currentHeartbeatObj() noexcept
+{
+}
+
+void distrebootObj::currentHeartbeatObj::update(heartbeatptr && newvalue,
+						bool isinitial)
+{
+	currentHeartbeatBaseObj::update(std::move(newvalue), isinitial);
+
+	if (isinitial)
+	{
+		LOG_DEBUG("Received initial heartbeat object, updating my own");
+		instance->update_my_heartbeat();
+	}
+}
+
 distrebootObj::distrebootObj()
 {
 }
@@ -97,6 +124,8 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 {
 	if (!args->start)
 		return ret::create("The daemon is not running", 1);
+
+	x::destroyCallbackFlag::base::guard guard;
 
 	nodename=args->forcenodename;
 
@@ -126,6 +155,8 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 		    n;
 				}));
 
+	guard(clientInstance);
+
 	args=argsptr();
 
 	// Initialize the status of the universe
@@ -134,14 +165,45 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 	connection_state_received=false;
 	connection_info_received=false;
 
+	// Additional guard for the subscription objects, make sure they're
+	// gone, before letting the client handle go out of scope and get
+	// destroyed. The declaration order is very important here:
+	// guard, clientInstance, guard_subscriptions, *_subscription objects,
+	// with the first guard guarding clientInstance, and guard_subscriptions
+	// guarding the following subscription objects. When this function
+	// scope terminates, guard_subscriptions makes sure that the
+	// objects that hold other references on clientInstance are going to
+	// get destroyed, before proceeding. Then, guard makes sure that the
+	// client handle gets fully destroyed.
+	//
+	// This prevents clientInstance from going out of scope before
+	// the references in the subscription objects go out of scope.
+	// Because the subscription objects implement callbacks that get
+	// invoked from the connection thread, having those objects end up with
+	// the last reference on the client handle is bad, and will result in
+	// a deadlock. This makes sure this does not happen.
+
+	x::destroyCallbackFlag::base::guard guard_subscriptions;
+
 	// Subscribe to the latest news.
 
 	auto manager=stasher::manager::create();
-	auto server_status_subscription = manager->
-		manage_serverstatusupdates(clientInstance,
-					   x::ref<serverStatusCallbackObj>
-					   ::create(distreboot(this)));
-		
+	auto server_status_subscription=manager->manage_serverstatusupdates
+		(clientInstance,
+		 guard_subscriptions(x::ref<serverStatusCallbackObj>
+				     ::create(distreboot(this))));
+
+	auto heartbeat_info_instanceRef=
+		currentHeartbeat::create(distreboot(this));
+
+	heartbeat_info_instance= &heartbeat_info_instanceRef;
+
+	guard_subscriptions(heartbeat_info_instanceRef);
+
+	auto heartbeat_info_instance_mcguffin=
+		heartbeat_info_instanceRef->manage(manager, clientInstance,
+						   heartbeat_object);
+
 	try {
 		while (1)
 			msgqueue->pop()->dispatch();
@@ -216,4 +278,75 @@ void distrebootObj::dispatch(const serverinfo_msg &msg)
 		nodename=connection_info.nodename;
 		LOG_TRACE("Node name is " << nodename);
 	}
+}
+
+void distrebootObj::dispatch(const update_my_heartbeat_msg &msg)
+{
+	do_update_my_heartbeat();
+}
+
+void distrebootObj::do_update_my_heartbeat()
+{
+	LOG_DEBUG("Updating my heartbeat");
+
+	// We'll update our heartbeat every heartbeat_interval. Announce our
+	// expiration date as a little bit beyond that, to give us some
+	// extra breathing room.
+	time_t my_expiration = time(NULL)
+		+ heartbeat_interval.getValue().seconds()*3/2;
+	LOG_TRACE("My expiration(" << nodename << ") is "
+		  << (std::string)x::ymdhms(my_expiration));
+	auto tran=stasher::client::base::transaction::create();
+
+	// Hold a lock on the current value while preparing the transaction.
+
+	decltype((*heartbeat_info_instance)->current_value)
+		::lock lock((*heartbeat_info_instance)->current_value);
+
+	heartbeatptr current_heartbeat=lock->value;
+
+	if (current_heartbeat.null())
+	{
+		LOG_TRACE("Heartbeat object does not exist, creating new one");
+
+		auto new_heartbeat=heartbeat::create();
+
+		new_heartbeat->timestamps[nodename]=my_expiration;
+
+		tran->newobj(heartbeat_object, new_heartbeat->toString());
+	}
+	else
+	{
+		auto &existing_heartbeat=*current_heartbeat;
+
+		LOG_TRACE("Updating existing heartbeat object");
+
+		existing_heartbeat.timestamps[nodename]=my_expiration;
+		tran->updobj(heartbeat_object,
+			     existing_heartbeat.uuid,
+			     existing_heartbeat.toString());
+	}
+
+	// In the event of a collision, know who to poke.
+
+	distreboot me(this);
+
+	stasher::versioned_put_from(*client, tran,
+				    [me]
+				    (const stasher::putresults &res)
+				    {
+					    LOG_TRACE("Heartbeat update "
+						      "processed: "
+						      + x::tostring(res->status)
+						      );
+
+					    if (res->status ==
+						stasher::req_rejected_stat)
+						    me->update_my_heartbeat();
+					    // Again, handle collisions.
+				    },
+
+				    // Versioned object that went into the
+				    // transaction.
+				    lock->value);
 }

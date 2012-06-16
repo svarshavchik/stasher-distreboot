@@ -7,8 +7,11 @@
 #include <x/eventqueuemsgdispatcher.H>
 #include <x/managedsingletonapp.H>
 #include <x/logger.H>
+#include <x/property_value.H>
+#include <x/hms.H>
 
 #include <stasher/client.H>
+#include <stasher/current.H>
 
 class distrebootObj;
 class distrebootBase;
@@ -22,6 +25,10 @@ typedef x::ptr<distrebootObj, distrebootBase> distrebootptr;
 class distrebootObj : public x::eventqueuemsgdispatcherObj {
 
 	LOG_CLASS_SCOPE;
+
+	// Heartbeat interval setting
+
+	static x::property::value<x::hms> heartbeat_interval;
 
 protected:
 	stasher::client *client; // On the executing thread's stack
@@ -63,6 +70,34 @@ protected:
 	typedef x::ref<heartbeatObj> heartbeat;
 	typedef x::ptr<heartbeatObj> heartbeatptr;
 
+	// Current heartbeat object. Use a versionedptr, so that it
+	// gets updated by a versioned put.
+
+	typedef stasher::currentObj<heartbeatptr,
+				    stasher::versionedptr<heartbeatptr>
+				    > currentHeartbeatBaseObj;
+	
+	// Subclass the current heartbeat object overrides update() to send
+	// an update_my_heartbeat() message to the distreboot instance, upon
+	// receipt of the initial heartbeat object from the repository.
+
+	class currentHeartbeatObj : public currentHeartbeatBaseObj {
+
+		distreboot instance;
+
+	public:
+		currentHeartbeatObj(const distreboot &instanceArg);
+		~currentHeartbeatObj() noexcept;
+
+		// If isinitial, update_my_heartbeat.
+
+		void update(heartbeatptr && newvalue, bool isinitial)
+			override;
+	};
+
+	typedef x::ref<currentHeartbeatObj> currentHeartbeat;
+
+	// The state of the repository
 	stasher::req_stat_t	connection_status;
 	stasher::clusterstate	connection_state;
 	stasher::userhelo	connection_info;
@@ -70,6 +105,10 @@ protected:
 	std::string nodename;
 	bool connection_state_received;
 	bool connection_info_received;
+
+	currentHeartbeat *heartbeat_info_instance; // On the executing thread's stack
+
+	void do_update_my_heartbeat();
 public:
 	// The name of the heartbeat object in the repository.
 

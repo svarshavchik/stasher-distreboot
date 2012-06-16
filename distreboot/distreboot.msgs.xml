@@ -84,4 +84,8 @@
     </param>
   </method>
 
+  <method name="update_my_heartbeat">
+    <comment>//! Update my heartbeat immediately.</comment>
+
+  </method>
 </class>
