@@ -17,6 +17,10 @@ LOG_CLASS_INIT(distrebootObj);
 x::property::value<x::hms>
 distrebootObj::heartbeat_interval(L"heartbeat", x::hms(0, 10, 0));
 
+// Server status callback invoked from the client connection handle
+
+// Forwards all callbacks to the distreboot thread.
+
 class distrebootObj::serverStatusCallbackObj
 	: public stasher::managedserverstatuscallbackObj {
 
@@ -32,19 +36,19 @@ public:
 	{
 	}
 
-	void connection_update(stasher::req_stat_t status)
+	void connection_update(stasher::req_stat_t status) override
 	{
 		LOG_TRACE("Connection update callback invoked");
 		instance->connection_update(status);
 	}
 
-	void state(const stasher::clusterstate &state)
+	void state(const stasher::clusterstate &state) override
 	{
 		LOG_TRACE("State callback invoked");
 		instance->serverstate(state);
 	}
 
-	void serverinfo(const stasher::userhelo &serverinfo)
+	void serverinfo(const stasher::userhelo &serverinfo) override
 	{
 		LOG_TRACE("Server info callback invoked");
 		instance->serverinfo(serverinfo);
@@ -116,9 +120,11 @@ distrebootObj::distrebootObj()
 {
 }
 
-distrebootObj::~distrebootObj() noexcept
-{
+distrebootObj::~distrebootObj() noexcept{
 }
+
+// Execution thread. The first singleton instance must have the
+// --start parameter
 
 distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 {
@@ -128,6 +134,8 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 	x::destroyCallbackFlag::base::guard guard;
 
 	nodename=args->forcenodename;
+
+	// Make a connection to the repository
 
 	stasher::client clientInstance=stasher::client::base
 		::connect_client( ({
@@ -217,6 +225,7 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 	return retv;
 }
 
+// Another singleton instance has been started.
 void distrebootObj::dispatch(const instance_msg &msg)
 {
 	msg.flag->processed();
