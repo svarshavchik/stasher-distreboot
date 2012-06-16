@@ -65,7 +65,8 @@ public:
 
 	void start(const test_options &opts)
 	{
-		alarm(120);
+		if (!opts.noalarm->value)
+			alarm(120);
 		std::string node=tst_get_node(opts);
 
 		size_t i=0;
@@ -76,6 +77,7 @@ public:
 
 			args->start=true;
 			args->forcenodename=tst_name(i++);
+			args->node=node;
 			inst.run(args);
 		}
 	}
