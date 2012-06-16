@@ -10,6 +10,7 @@
 #include <stasher/versionedput.H>
 
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include "distreboot.H"
 
@@ -284,8 +285,44 @@ void distrebootObj::dispatch(const instance_msg &msg)
 		  << std::endl;
 	}
 
-	msg.retArg->message=o.str();
+	{
+		decltype( (*heartbeat_info_instance)->current_value )::lock
+			lock( (*heartbeat_info_instance)->current_value);
 
+		if (lock->value.null())
+		{
+			o << "Heartbeat status not received yet" << std::endl;
+		}
+		else
+		{
+			o << "Heartbeat status (uuid "
+			  << x::tostring(lock->value->uuid)
+			  << "):" << std::endl;
+
+			size_t max_len=0;
+
+			for (auto &timestamp:lock->value->timestamps)
+			{
+				size_t s=timestamp.first.size();
+
+				if (s > max_len)
+					max_len=s;
+			}
+
+			for (auto &timestamp:lock->value->timestamps)
+			{
+				o << "    "
+				  << std::setw(max_len)
+				  << timestamp.first
+				  << std::setw(0)
+				  << " expires on "
+				  << (std::string)x::ymdhms(timestamp.second)
+				  << std::endl;
+			}
+		}
+	}
+
+	msg.retArg->message=o.str();
 }
 
 void distrebootObj::dispatch(const connection_update_msg &msg)

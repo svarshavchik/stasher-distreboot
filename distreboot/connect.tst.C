@@ -3,6 +3,7 @@
 #include <x/mpobj.H>
 #include <x/ymdhms.H>
 #include <x/property_properties.H>
+#include <x/destroycallbackflag.H>
 #include "tst.H"
 #include "distreboot.H"
 
@@ -68,6 +69,26 @@ public:
 };
 
 typedef x::ref<test1distrebootObj> test1instance;
+
+static std::string status(const distreboot &instance)
+{
+	auto ret=distrebootObj::ret::create();
+
+	{
+		x::destroyCallbackFlag::base::guard guard;
+
+		auto status=distrebootObj::args::create();
+
+		x::ref<x::obj> mcguffin=x::ref<x::obj>::create();
+		guard(mcguffin); // Exit this scope only when it's done.
+
+		instance->instance(0, status, ret,
+				   x::singletonapp::processed::create(),
+				   mcguffin);
+	}
+
+	return ret->message;
+}
 
 static void test1(test_options &opts)
 {
@@ -184,6 +205,7 @@ static void test1(test_options &opts)
 			  return true;
 		  });
 
+	std::cout << status(nodes.instances[0].inst);
 }
 
 int main(int argc, char **argv)

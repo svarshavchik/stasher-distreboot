@@ -125,7 +125,7 @@ public:
 
 		std::string forcenodename; // Used by regression tests
 
-		argsObj() {}
+		argsObj() : start(false), stop(false) {}
 		argsObj(bool startArg, bool stopArg,
 			const std::string &nodeArg)
 			: start(startArg), stop(stopArg),
