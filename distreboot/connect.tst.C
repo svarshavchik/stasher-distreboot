@@ -206,6 +206,28 @@ static void test1(test_options &opts)
 		  });
 
 	std::cout << status(nodes.instances[0].inst);
+
+	std::cout << "Stopping first node" << std::endl;
+	nodes.instances[0].stop();
+	nodes.instances[0].wait();
+
+	std::cout << "Waiting for its timestamp to be purged out" << std::endl;
+	x::property::load_property(L"stale", L"2", true, true);
+
+	lock.wait([&lock, &first_heartbeat]
+		  {
+			  if (!lock->value.null())
+			  {
+				  auto &timestamps=lock->value->timestamps;
+
+				  if (timestamps.find(tst_name(0))
+				      == timestamps.end())
+					  return true;
+			  }
+
+			  std::cout << "...not yet" << std::endl;
+			  return false;
+		  });
 }
 
 int main(int argc, char **argv)

@@ -19,6 +19,9 @@ LOG_CLASS_INIT(distrebootObj);
 x::property::value<x::hms>
 distrebootObj::heartbeat_interval(L"heartbeat", x::hms(0, 10, 0));
 
+x::property::value<x::hms>
+distrebootObj::stale_interval(L"stale", x::hms(24, 0, 0));
+
 // Server status callback invoked from the client connection handle
 
 // Forwards all callbacks to the distreboot thread.
@@ -388,6 +391,26 @@ void distrebootObj::do_update_my_heartbeat()
 		auto &existing_heartbeat=*current_heartbeat;
 
 		LOG_TRACE("Updating existing heartbeat object");
+
+		// Purge stale heartbeats
+
+		time_t t=time(NULL);
+		time_t stale=stale_interval.getValue().seconds();
+
+		for (auto b=existing_heartbeat.timestamps.begin(),
+			     e=existing_heartbeat.timestamps.end(); b != e; )
+		{
+			auto p=b;
+
+			++b;
+
+			if (p->second + stale > t)
+				continue;
+
+			LOG_WARNING("Stale heartbeat for "
+				    << p->first << " purged");
+			existing_heartbeat.timestamps.erase(p);
+		}
 
 		existing_heartbeat.timestamps[nodename]=my_expiration;
 		tran->updobj(heartbeat_object,

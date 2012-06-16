@@ -30,6 +30,10 @@ class distrebootObj : public x::eventqueuemsgdispatcherObj {
 
 	static x::property::value<x::hms> heartbeat_interval;
 
+	// This long after the heartbeat's expiration, it's subject to purging
+
+	static x::property::value<x::hms> stale_interval;
+
 protected:
 	stasher::client *client; // On the executing thread's stack
 
