@@ -1,5 +1,8 @@
 #include "distreboot_config.h"
 
+#include <x/fditer.H>
+#include <x/deserialize.H>
+#include <x/serialize.H>
 #include <stasher/managedserverstatuscallback.H>
 #include <stasher/manager.H>
 
@@ -42,6 +45,45 @@ public:
 		instance->serverinfo(serverinfo);
 	}
 };
+
+const char distrebootObj::heartbeat_object[]="heartbeat";
+
+distrebootObj::heartbeatObj::heartbeatObj()
+{
+}
+
+// Read the heartbeat object from the filehandle.
+
+distrebootObj::heartbeatObj::heartbeatObj(const x::uuid &uuidArg,
+					  const x::fd &fdArg)
+	: uuid(uuidArg)
+{
+	try {
+		x::fdinputiter iter(fdArg), iter_end;
+
+		x::deserialize::iterator<x::fdinputiter>
+			deser_iter(iter, iter_end);
+
+		deser_iter(timestamps);
+	} catch (const x::exception &e)
+	{
+		LOG_FATAL("Heartbeat object corrupted, removing: " << e);
+	}
+}
+
+// Serialize the heartbeat object, before putting it into the repository.
+
+std::string distrebootObj::heartbeatObj::toString() const
+{
+	std::string s;
+	std::back_insert_iterator<std::string> iter(s);
+
+	x::serialize::iterator<std::back_insert_iterator<std::string> >
+		ser_iter(iter);
+
+	ser_iter(timestamps);
+	return s;
+}
 
 distrebootObj::distrebootObj()
 {

@@ -28,6 +28,41 @@ protected:
 
 	class serverStatusCallbackObj;
 
+	// The heartbeat object in the repository gets parsed into here.
+
+	class heartbeatObj : virtual public x::obj {
+
+	public:
+		// Keys are node names. Value is the epoch time the heartbeat
+		// expires, the node is considered to be unavailable at that
+		// time.
+
+		typedef std::map<std::string, time_t> timestamps_t;
+
+		// This object's uuid in the repository
+
+		x::uuid uuid;
+
+		// Each node's timestamp
+
+		timestamps_t timestamps;
+
+		// Default constructor
+		heartbeatObj();
+
+		// Construct from retrieved object file descriptor
+		heartbeatObj(const x::uuid &uuidArg, const x::fd &fdArg);
+
+		// Create a string to go into the repository
+		std::string toString() const;
+
+		~heartbeatObj() noexcept {}
+	};
+
+	// Some convenience typedefs
+	typedef x::ref<heartbeatObj> heartbeat;
+	typedef x::ptr<heartbeatObj> heartbeatptr;
+
 	stasher::req_stat_t	connection_status;
 	stasher::clusterstate	connection_state;
 	stasher::userhelo	connection_info;
@@ -36,6 +71,9 @@ protected:
 	bool connection_state_received;
 	bool connection_info_received;
 public:
+	// The name of the heartbeat object in the repository.
+
+	static const char heartbeat_object[];
 
 	// Arguments to the singleton's invocation
 
