@@ -2,12 +2,20 @@
 #define distreboot_H
 
 #include <x/ref.H>
+#include <x/ptr.H>
 #include <x/fd.H>
 #include <x/eventqueuemsgdispatcher.H>
 #include <x/managedsingletonapp.H>
 #include <x/logger.H>
 
 #include <stasher/client.H>
+
+class distrebootObj;
+class distrebootBase;
+
+typedef x::ref<distrebootObj, distrebootBase> distreboot;
+
+typedef x::ptr<distrebootObj, distrebootBase> distrebootptr;
 
 // The main class. It's an application singleton.
 
@@ -111,7 +119,5 @@ public:
 
 	typedef distrebootObj::ret ret;
 };
-
-typedef x::ref<distrebootObj, distrebootBase> distreboot;
 
 #endif
