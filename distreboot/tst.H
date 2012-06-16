@@ -62,6 +62,10 @@ std::string tst_name(size_t n);
 
 void tst_clean(const stasher::client &client);
 
+// Return the status of this test node instance.
+
+std::string tst_status(const distreboot &instance);
+
 template<size_t n, typename tst_type=distreboot> class tst_nodes {
 
 	LOG_CLASS_SCOPE;

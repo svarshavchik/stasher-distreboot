@@ -104,3 +104,23 @@ void tst_clean(const stasher::client &client)
 			throw EXCEPTION(x::tostring(res->status));
 	}
 }
+
+std::string tst_status(const distreboot &instance)
+{
+	auto ret=distrebootObj::ret::create();
+
+	{
+		x::destroyCallbackFlag::base::guard guard;
+
+		auto status=distrebootObj::args::create();
+
+		x::ref<x::obj> mcguffin=x::ref<x::obj>::create();
+		guard(mcguffin); // Exit this scope only when it's done.
+
+		instance->instance(0, status, ret,
+				   x::singletonapp::processed::create(),
+				   mcguffin);
+	}
+
+	return ret->message;
+}
