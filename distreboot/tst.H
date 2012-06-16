@@ -7,6 +7,7 @@
 #include "distreboot.H"
 #include <x/threads/run.H>
 #include <x/logger.H>
+#include <stasher/client.H>
 #include <unistd.h>
 #include <array>
 
@@ -55,6 +56,11 @@ std::string tst_get_node(const test_options &opts);
 // Dummy node name for regression test instance #n
 
 std::string tst_name(size_t n);
+
+// Remove any existing objects in my sandbox. Used to start with a clean unit
+// test environment.
+
+void tst_clean(const stasher::client &client);
 
 template<size_t n, typename tst_type=distreboot> class tst_nodes {
 

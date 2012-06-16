@@ -95,38 +95,7 @@ static void test1(test_options &opts)
 	stasher::client client=
 		stasher::client::base::connect(tst_get_node(opts));
 
-	// Delete any stale object in my sandbox
-
-	{
-		std::set<std::string> set;
-
-		set.insert(distrebootObj::heartbeat_object);
-
-		auto contents=client->getcontents(set)->objects;
-
-		if (!contents->succeeded)
-			throw EXCEPTION(contents->errmsg);
-
-		auto transaction=stasher::client::base::transaction::create();
-		bool deleted=false;
-
-		for (auto &dropit:*contents)
-		{
-			deleted=true;
-			transaction->delobj(dropit.first, dropit.second.uuid);
-			std::cout << "Removing object: " << dropit.first
-				  << std::endl;
-		}
-
-		if (deleted)
-		{
-			auto res=client->put(transaction);
-
-			if (res->status != stasher::req_processed_stat)
-				throw EXCEPTION(x::tostring(res->status));
-		}
-	}
-
+	tst_clean(client);
 	tst_nodes<2, test1instance> nodes;
 
 	nodes.start(opts);

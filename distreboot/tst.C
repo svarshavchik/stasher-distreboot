@@ -71,3 +71,36 @@ std::string tst_name(size_t n)
 
 	return o.str();
 }
+
+// Delete any stale object in my sandbox
+
+void tst_clean(const stasher::client &client)
+{
+	std::set<std::string> set;
+
+	set.insert(distrebootObj::heartbeat_object);
+
+	auto contents=client->getcontents(set)->objects;
+
+	if (!contents->succeeded)
+		throw EXCEPTION(contents->errmsg);
+
+	auto transaction=stasher::client::base::transaction::create();
+	bool deleted=false;
+
+	for (auto &dropit:*contents)
+	{
+		deleted=true;
+		transaction->delobj(dropit.first, dropit.second.uuid);
+		std::cout << "Removing object: " << dropit.first
+			  << std::endl;
+	}
+
+	if (deleted)
+	{
+		auto res=client->put(transaction);
+
+		if (res->status != stasher::req_processed_stat)
+			throw EXCEPTION(x::tostring(res->status));
+	}
+}
