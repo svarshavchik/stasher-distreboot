@@ -4,6 +4,7 @@
 #include <x/deserialize.H>
 #include <x/serialize.H>
 #include <x/ymdhms.H>
+#include <x/threads/timer.H>
 #include <stasher/managedserverstatuscallback.H>
 #include <stasher/manager.H>
 #include <stasher/versionedput.H>
@@ -211,6 +212,27 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 	auto heartbeat_info_instance_mcguffin=
 		heartbeat_info_instanceRef->manage(manager, clientInstance,
 						   heartbeat_object);
+
+	// Make arrangements to call update_my_heartbeat() periodically
+
+	auto update_heartbeat_mcguffin=({
+
+			auto this_task=distreboot(this);
+
+			auto update_heartbeat_functor=x::timertask::base::
+				make_timer_task([this_task] {
+						this_task->
+							update_my_heartbeat();
+					});
+
+			auto mcguffin=update_heartbeat_functor->autocancel();
+
+			x::timer::base::global()
+				->scheduleAtFixedRate(update_heartbeat_functor,
+						      L"heartbeat",
+						      std::chrono::minutes(10));
+			mcguffin;
+		});
 
 	try {
 		while (1)

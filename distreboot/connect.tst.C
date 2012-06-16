@@ -2,7 +2,7 @@
 #include <x/options.H>
 #include <x/mpobj.H>
 #include <x/ymdhms.H>
-
+#include <x/property_properties.H>
 #include "tst.H"
 #include "distreboot.H"
 
@@ -13,6 +13,9 @@ class test1distrebootObj : public distrebootObj {
 public:
 
 	typedef x::ref<currentHeartbeatBaseObj> heartbeat;
+
+	typedef distrebootObj::heartbeat heartbeatval;
+	typedef distrebootObj::heartbeatptr heartbeatvalptr;
 
 	class meta_t {
 	public:
@@ -155,6 +158,32 @@ static void test1(test_options &opts)
 			  std::cout << "... not yet" << std::endl;
 			  return false;
 		  });
+
+	test1distrebootObj::heartbeatval first_heartbeat=
+		test1distrebootObj::heartbeatvalptr(lock->value);
+
+	std::cout << "Waiting for all heartbeats to get updated" << std::endl;
+
+	lock.wait([&lock, &first_heartbeat]
+		  {
+			  if (lock->value.null())
+				  return false;
+
+			  auto &timestamps=lock->value->timestamps;
+
+			  for (auto &timestamp:first_heartbeat->timestamps)
+			  {
+				  auto iter=timestamps.find(timestamp.first);
+
+				  if (iter == timestamps.end())
+					  return false;
+
+				  if (iter->second == timestamp.second)
+					  return false;
+			  }
+			  return true;
+		  });
+
 }
 
 int main(int argc, char **argv)
@@ -163,6 +192,7 @@ int main(int argc, char **argv)
 
 	opts.parse(argc, argv);
 
+	x::property::load_property(L"heartbeat", L"2", true, true);
 	test1(opts);
 	return 0;
 }
