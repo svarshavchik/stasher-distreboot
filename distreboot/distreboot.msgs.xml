@@ -88,4 +88,15 @@
     <comment>//! Update my heartbeat immediately.</comment>
 
   </method>
+
+  <method name="rebootlist_updated">
+    <comment>//! The rebootlist object was updated in the repository</comment>
+
+  </method>
+
+  <method name="again_just_rebooted">
+    <comment>//! Removal of me from the rebootlist collided, try again</comment>
+
+  </method>
+
 </class>

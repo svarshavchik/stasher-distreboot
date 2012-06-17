@@ -119,6 +119,7 @@ protected:
 	typedef stasher::currentObj<rebootlistptr,
 				    stasher::versionedptr<rebootlistptr>
 				    > currentRebootListObj;
+	typedef x::ref<currentRebootListObj> currentRebootList;
 
 	// The state of the repository
 	stasher::req_stat_t	connection_status;
@@ -128,10 +129,21 @@ protected:
 	std::string nodename;
 	bool connection_state_received;
 	bool connection_info_received;
+	bool heartbeat_received;
+	bool rebootlist_received;
+
+	bool rebootlist_check_done;
+	// Initial check, after starting, to remove my node from the reboot
+	// list, if it's at the top of the list.
+
 
 	currentHeartbeat *heartbeat_info_instance; // On the executing thread's stack
+	currentRebootList *rebootlist_instance; // On the executing thread's stack
 
 	void do_update_my_heartbeat();
+
+	void do_process_rebootlist();
+	void do_just_rebooted();
 public:
 	// The name of the heartbeat object in the repository.
 

@@ -273,6 +273,33 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 			mcguffin;
 		});
 
+	// Initialize rebootlist
+
+	auto rebootlist_instanceRef=
+		({
+			distreboot me(this);
+
+			stasher::make_versioned_current<rebootlistptr>
+				( [me]
+				  (rebootlistptr && val,
+				   bool isinitial)
+				  {
+					  me->rebootlist_updated();
+				  });
+		});
+
+	rebootlist_instance= &rebootlist_instanceRef;
+
+	guard_subscriptions(rebootlist_instanceRef);
+
+	auto rebootlist_instance_mcguffin=
+		rebootlist_instanceRef->manage(manager, clientInstance,
+					       rebootlist_object);
+
+	heartbeat_received=false;
+	rebootlist_received=false;
+	rebootlist_check_done=false;
+
 	try {
 		while (1)
 			msgqueue->pop()->dispatch();
@@ -388,7 +415,9 @@ void distrebootObj::dispatch(const serverinfo_msg &msg)
 
 void distrebootObj::dispatch(const update_my_heartbeat_msg &msg)
 {
+	heartbeat_received=true;
 	do_update_my_heartbeat();
+	do_process_rebootlist();
 }
 
 void distrebootObj::do_update_my_heartbeat()
@@ -475,4 +504,85 @@ void distrebootObj::do_update_my_heartbeat()
 				    // Versioned object that went into the
 				    // transaction.
 				    lock->value);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void distrebootObj::dispatch(const rebootlist_updated_msg &msg)
+{
+	rebootlist_received=true;
+	do_process_rebootlist();
+}
+
+void distrebootObj::do_process_rebootlist()
+{
+	if (!heartbeat_received || !rebootlist_received)
+		return;
+
+	if (!rebootlist_check_done)
+	{
+		do_just_rebooted();
+		rebootlist_check_done=true;
+	}
+}
+
+// After we received the heartbeat object and the rebootlist
+// object, for the first time, check if we're listed as the
+// first node in the reboot list.
+// If so, we must've just rebooted, so take ourselves off the
+// list.
+
+void distrebootObj::dispatch(const again_just_rebooted_msg &msg)
+{
+	do_just_rebooted();
+}
+
+void distrebootObj::do_just_rebooted()
+{
+	auto tran=stasher::client::base::transaction::create();
+
+	decltype((*rebootlist_instance)->current_value)::lock
+		lock((*rebootlist_instance)->current_value);
+
+	if (lock->value.null())
+		return;
+
+	auto &list=lock->value->list;
+
+	if (list.empty())
+	{
+		tran->delobj(rebootlist_object, lock->value->uuid);
+		LOG_WARNING("Removing empty rebootlist object");
+	}
+	else
+	{
+		if (list.front() != nodename)
+			return;
+
+		list.pop_front();
+
+		if (list.empty())
+			tran->delobj(rebootlist_object, lock->value->uuid);
+		else
+			tran->updobj(rebootlist_object, lock->value->uuid,
+				     lock->value->toString());
+		LOG_INFO("Marking myself as rebooted");
+	}
+
+	distreboot me(this);
+
+	stasher::versioned_put_from(*client, tran,
+				    [me]
+				    (const stasher::putresults &res)
+				    {
+					    LOG_TRACE("Rebootlist update "
+						      "processed: "
+						      + x::tostring(res->status)
+						      );
+					    if (res->status ==
+						stasher::req_rejected_stat)
+					    {
+						    me->again_just_rebooted();
+					    }
+				    });
 }
