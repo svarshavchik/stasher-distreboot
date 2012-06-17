@@ -79,6 +79,7 @@ void tst_clean(const stasher::client &client)
 	std::set<std::string> set;
 
 	set.insert(distrebootObj::heartbeat_object);
+	set.insert(distrebootObj::rebootlist_object);
 
 	auto contents=client->getcontents(set)->objects;
 
