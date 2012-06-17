@@ -84,6 +84,7 @@ static void test1(test_options &opts)
 	std::cout << "Waiting for newly-started node to clear itself"
 		  << std::endl;
 
+	auto tran=stasher::client::base::transaction::create();
 	{
 		decltype(fakereboot->current_value)::lock
 			lock(fakereboot->current_value);
@@ -105,17 +106,18 @@ static void test1(test_options &opts)
 
 		std::cout << "Putting fake node at the top of the reboot list"
 			  << std::endl;
-		auto tran=stasher::client::base::transaction::create();
 
 		tran->updobj(distrebootObj::rebootlist_object,
 			     lock->value->uuid,
 			     lock->value->toString());
-
-		auto res=client->put(tran);
-
-		if (res->status != stasher::req_processed_stat)
-			throw EXCEPTION(x::tostring(res->status));
 	}
+
+	auto res=client->put(tran);
+
+	std::cerr << "STATUS: " << x::tostring(res->status)
+		  << std::endl;
+	if (res->status != stasher::req_processed_stat)
+		throw EXCEPTION(x::tostring(res->status));
 
 	std::cout << "Waiting for the distreboot instance to stop" << std::endl;
 
