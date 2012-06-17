@@ -27,6 +27,9 @@ distrebootObj::stale_interval(L"stale", x::hms(24, 0, 0));
 distrebootObj::argsObj::argsObj(const distreboot_options &opts)
 	: start(opts.start->value),
 	  stop(opts.stop->value),
+	  reboot(opts.reboot->value),
+	  cancel(opts.cancel->value),
+	  dry_run(opts.dry_run->value),
 	  node(opts.node->value)
 {
 }
@@ -339,6 +342,30 @@ void distrebootObj::dispatch(const instance_msg &msg)
 		return;
 	}
 
+	if (msg.command->dry_run)
+	{
+		auto result=create_rebootlist();
+
+		if (result.first.null())
+		{
+			msg.retArg->message=result.second;
+			msg.retArg->exitcode=1;
+			return;
+		}
+
+		std::ostringstream o;
+
+		o << "Reboot order:" << std::endl;
+
+		for (auto &node:result.first->list)
+		{
+			o << "   " << node << std::endl;
+		}
+
+		msg.retArg->message=o.str();
+		return;
+	}
+
 	std::ostringstream o;
 
 	o << "Repository connection status: " << x::tostring(connection_status)
@@ -534,12 +561,16 @@ void distrebootObj::do_process_rebootlist()
 		return;
 	}
 
+	LOG_TRACE("Checking if I should reboot");
 	{
 		decltype((*rebootlist_instance)->current_value)::lock
 			lock((*rebootlist_instance)->current_value);
 
 		if (lock->value.null())
+		{
+			LOG_DEBUG("Reboot list object does not exist");
 			return;
+		}
 
 		auto &list=lock->value->list;
 
@@ -548,6 +579,9 @@ void distrebootObj::do_process_rebootlist()
 			LOG_WARNING("Empty rebootlist object");
 			return;
 		}
+
+		LOG_DEBUG("Next to reboot: " << list.front()
+			  << ", and I am " << nodename);
 
 		if (list.front() != nodename)
 			return;
@@ -614,6 +648,81 @@ void distrebootObj::do_just_rebooted()
 						    me->again_just_rebooted();
 					    }
 				    });
+}
+
+std::pair<distrebootObj::rebootlistptr, std::string>
+distrebootObj::create_rebootlist()
+{
+	if (!heartbeat_received || !rebootlist_received
+	    || !connection_state_received || !connection_info_received)
+		return std::make_pair(rebootlistptr(),
+				      "Still initializing");
+
+	if (connection_status != stasher::req_processed_stat)
+		return std::make_pair(rebootlistptr(),
+				      "Not connected with the server");
+
+	if (!connection_state.majority)
+		return std::make_pair(rebootlistptr(),
+				      "Repository is not in quorum");
+
+	if (!decltype((*rebootlist_instance)->current_value)
+	    ::lock((*rebootlist_instance)->current_value)
+	    ->value.null())
+	{
+		return std::make_pair(rebootlistptr(),
+				      "A reboot already in progress");
+	}
+
+	// Compile a list of nodes that are alive. Supposedly.
+
+	std::set<std::string> nodes;
+
+	time_t now=time(NULL);
+
+	{
+		decltype((*heartbeat_info_instance)->current_value)
+			::lock lock((*heartbeat_info_instance)->current_value);
+
+		heartbeatptr current_heartbeat=lock->value;
+
+		if (!current_heartbeat.null())
+		{
+			for (auto &member:current_heartbeat->timestamps)
+			{
+				nodes.insert(member.first);
+
+				if (now < member.second)
+					continue;
+
+				return std::make_pair(rebootlistptr(),
+						      "node " +
+						      member.first
+						      + " has a stale heartbeat"
+						      );
+			}
+		}
+		nodes.insert(nodename);
+	}
+
+	auto list=rebootlist::create();
+
+	// The current master will always go last
+
+	std::set<std::string> master;
+
+	auto master_node=nodes.find(connection_state.master);
+
+	if (master_node != nodes.end())
+	{
+		master.insert(*master_node);
+		nodes.erase(master_node);
+	}
+
+	list->list.insert(list->list.end(), nodes.begin(), nodes.end());
+	list->list.insert(list->list.end(), master.begin(), master.end());
+
+	return std::make_pair(list, "");
 }
 
 // In the real world, this will get overridden

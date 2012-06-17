@@ -17,10 +17,18 @@ public:
 	typedef distrebootObj::rebootlist rebootlistval;
 	typedef distrebootObj::rebootlistptr rebootlistvalptr;
 
+	typedef distrebootObj::heartbeat heartbeat;
+
 	std::string fakemaster;
 	std::set<std::string> fakenodes;
+	bool fakefull;
+	bool fakemajority;
 
-	test1distrebootObj() {}
+	x::mpcobj<bool> ready;
+	
+	test1distrebootObj() : fakefull(true), fakemajority(true), ready(false)
+	{
+	}
 
 	~test1distrebootObj() noexcept {}
 
@@ -30,10 +38,20 @@ public:
 
 		cpy.state.master=fakemaster;
 		cpy.state.nodes=fakenodes;
-		cpy.state.full=true;
-		cpy.state.majority=true;
+		cpy.state.full=fakefull;
+		cpy.state.majority=fakemajority;
 
 		distrebootObj::dispatch(cpy);
+	}
+
+	void do_just_rebooted() override
+	{
+		distrebootObj::do_just_rebooted();
+
+		x::mpcobj<bool>::lock lock(ready);
+
+		*lock=true;
+		lock.notify_all();
 	}
 };
 
@@ -124,6 +142,81 @@ static void test1(test_options &opts)
 	nodes.instances[0].wait();
 }
 
+static void test2(test_options &opts)
+{
+	stasher::client client=
+		stasher::client::base::connect(tst_get_node(opts));
+
+	tst_clean(client);
+
+	{
+		auto fake_heartbeat=
+			test1distrebootObj::heartbeat::create();
+
+		time_t now=time(NULL)+600;
+
+		fake_heartbeat->timestamps[tst_name(1)]=now;
+		fake_heartbeat->timestamps[tst_name(2)]=now;
+
+		auto transaction=stasher::client::base::transaction::create();
+
+		transaction->newobj(distrebootObj::heartbeat_object,
+				    fake_heartbeat->toString());
+
+		auto res=client->put(transaction);
+
+		if (res->status != stasher::req_processed_stat)
+			throw EXCEPTION(x::tostring(res->status));
+	}
+
+	tst_nodes<1, test1instance> nodes;
+
+	{
+		auto &t=*test1instance(nodes.instances[0].inst);
+		t.fakemaster=tst_name(0);
+		t.fakenodes.insert(tst_name(1));
+	}
+
+	nodes.start(opts);
+
+	std::cout << "Waiting for node to be ready" << std::endl;
+	{
+		test1instance t(nodes.instances[0].inst);
+
+		x::mpcobj<bool>::lock lock(t->ready);
+
+		lock.wait([&lock]
+			  {
+				  return *lock;
+			  });
+	}
+
+	{
+		auto args=distrebootObj::args::create();
+
+		args->dry_run=true;
+
+		auto ret=distrebootObj::ret::create();
+
+		{
+			x::destroyCallbackFlag::base::guard guard;
+
+			x::ref<x::obj> mcguffin=x::ref<x::obj>::create();
+
+			guard(mcguffin);
+
+			nodes.instances[0].inst
+				->instance(0, args, ret,
+					   x::singletonapp::processed
+					   ::create(), mcguffin);
+			// guard waits for mcguffin to get destroyed, for the
+			// instance request to be processed
+		}
+
+		std::cout << ret->message;
+	}
+}
+			
 int main(int argc, char **argv)
 {
 	test_options opts;
@@ -131,6 +224,9 @@ int main(int argc, char **argv)
 	opts.parse(argc, argv);
 
 	x::property::load_property(L"heartbeat", L"2", true, true);
+	std::cout << "test1" << std::endl;
 	test1(opts);
+	std::cout << "test2" << std::endl;
+	test2(opts);
 	return 0;
 }

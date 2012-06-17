@@ -144,7 +144,9 @@ protected:
 	void do_update_my_heartbeat();
 
 	void do_process_rebootlist();
-	void do_just_rebooted();
+	virtual void do_just_rebooted();
+
+	std::pair<rebootlistptr, std::string> create_rebootlist();
 public:
 	// The name of the heartbeat object in the repository.
 
@@ -161,11 +163,15 @@ public:
 	public:
 		bool start; // --start command line option
 		bool stop;  // --stop
+		bool reboot; // --reboot
+		bool cancel; // --cancel
+		bool dry_run; // --dry-run
 		std::string node;  // --repo
 
 		std::string forcenodename; // Used by regression tests
 
-		argsObj() : start(false), stop(false) {}
+		argsObj() : start(false), stop(false),
+			    reboot(false), cancel(false), dry_run(false) {}
 		argsObj(const distreboot_options &opts);
 
 		~argsObj() noexcept 
@@ -176,6 +182,9 @@ public:
 		{
 			iter(start);
 			iter(stop);
+			iter(reboot);
+			iter(cancel);
+			iter(dry_run);
 			iter(node);
 		}
 	};

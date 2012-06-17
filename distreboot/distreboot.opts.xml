@@ -27,9 +27,36 @@
     <descr>Stop the distributed reboot daemon</descr>
   </option>
 
+  <option>
+    <name>reboot</name>
+    <type>bool</type>
+    <default>false</default>
+    <longopt>reboot</longopt>
+    <descr>Reboot all nodes</descr>
+  </option>
+
+  <option>
+    <name>dry_run</name>
+    <type>bool</type>
+    <default>false</default>
+    <longopt>dry-run</longopt>
+    <descr>Show the order in which the nodes will get rebooted</descr>
+  </option>
+
+  <option>
+    <name>cancel</name>
+    <type>bool</type>
+    <default>false</default>
+    <longopt>cancel</longopt>
+    <descr>Cancel reboots that have not begun yet</descr>
+  </option>
+
   <mutex>
     <name>start</name>
     <name>stop</name>
+    <name>reboot</name>
+    <name>dry_run</name>
+    <name>cancel</name>
   </mutex>
 
   <defaultoptions />
