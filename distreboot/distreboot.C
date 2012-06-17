@@ -342,7 +342,7 @@ void distrebootObj::dispatch(const instance_msg &msg)
 		return;
 	}
 
-	if (msg.command->dry_run)
+	if (msg.command->dry_run || msg.command->reboot)
 	{
 		auto result=create_rebootlist();
 
@@ -363,6 +363,74 @@ void distrebootObj::dispatch(const instance_msg &msg)
 		}
 
 		msg.retArg->message=o.str();
+
+		if (msg.command->dry_run)
+			return;
+
+		// Put the new rebootlist object into the repository. Whoever's
+		// on the top of the list will wake up.
+
+		auto tran=stasher::client::base::transaction::create();
+
+		tran->newobj(rebootlist_object, result.first->toString());
+
+		// Put it. The functor captures msg by value, so that its
+		// parameters do not go out of scope until the request
+		// completes.
+
+		stasher::process_request((*client)->put_request(tran),
+					 [msg]
+					 (const stasher::putresults &res)
+					 {
+						 if (res->status == stasher::
+						     req_processed_stat)
+							 return;
+						 msg.retArg->message=
+							 x::tostring(res->
+								     status)
+							 + "\n";
+						 msg.retArg->exitcode=1;
+					 });
+		return;
+	}
+
+	if (msg.command->cancel)
+	{
+		if (!rebootlist_received)
+		{
+			msg.retArg->message="Not yet initialized";
+			msg.retArg->exitcode=1;
+			return;
+		}
+
+		auto tran=stasher::client::base::transaction::create();
+
+		{
+			decltype((*rebootlist_instance)->current_value)::lock
+				lock((*rebootlist_instance)->current_value);
+
+			if (lock->value.null())
+			{
+				msg.retArg->message="No reboot in progress";
+				msg.retArg->exitcode=1;
+				return;
+			}
+
+			tran->delobj(rebootlist_object, lock->value->uuid);
+		}
+
+		stasher::process_request((*client)->put_request(tran),
+					 [msg]
+					 (const stasher::putresults &res)
+					 {
+						 msg.retArg->message=
+							 x::tostring(res->
+								     status)
+							 + "\n";
+						 if (res->status != stasher::
+						     req_processed_stat)
+							 msg.retArg->exitcode=1;
+					 });
 		return;
 	}
 

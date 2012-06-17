@@ -213,7 +213,102 @@ static void test2(test_options &opts)
 			// instance request to be processed
 		}
 
+		if (ret->exitcode)
+			throw EXCEPTION(ret->message);
 		std::cout << ret->message;
+	}
+	std::cout << "Lets make it real" << std::endl;
+
+	{
+		auto args=distrebootObj::args::create();
+
+		args->reboot=true;
+
+		auto ret=distrebootObj::ret::create();
+
+		{
+			x::destroyCallbackFlag::base::guard guard;
+
+			x::ref<x::obj> mcguffin=x::ref<x::obj>::create();
+
+			guard(mcguffin);
+
+			nodes.instances[0].inst
+				->instance(0, args, ret,
+					   x::singletonapp::processed
+					   ::create(), mcguffin);
+			// guard waits for mcguffin to get destroyed, for the
+			// instance request to be processed
+		}
+
+		if (ret->exitcode)
+			throw EXCEPTION(ret->message);
+	}
+
+	auto manager=stasher::manager::create();
+	auto fakereboot=test1distrebootObj::rebootlist::create();
+
+	auto managed_rebootlist_mcguffin=
+		fakereboot->manage(manager, client,
+				   distrebootObj::rebootlist_object);
+
+	{
+		decltype(fakereboot->current_value)::lock
+			lock(fakereboot->current_value);
+
+		lock.wait([&lock]
+			  {
+				  if (lock->value.null())
+					  return;
+
+				  if (lock->value->list.empty())
+					  return;
+
+				  // Since node0 is master, it must be the
+				  // last one.
+
+				  return *--lock->value->list.end() ==
+					  tst_name(0);
+			  });
+	}
+
+	std::cout << "Now, let's cancel it" << std::endl;
+
+	{
+		auto args=distrebootObj::args::create();
+
+		args->cancel=true;
+
+		auto ret=distrebootObj::ret::create();
+
+		{
+			x::destroyCallbackFlag::base::guard guard;
+
+			x::ref<x::obj> mcguffin=x::ref<x::obj>::create();
+
+			guard(mcguffin);
+
+			nodes.instances[0].inst
+				->instance(0, args, ret,
+					   x::singletonapp::processed
+					   ::create(), mcguffin);
+			// guard waits for mcguffin to get destroyed, for the
+			// instance request to be processed
+		}
+
+		if (ret->exitcode)
+			throw EXCEPTION(ret->message);
+		std::cout << ret->message;
+	}
+
+	{
+		decltype(fakereboot->current_value)::lock
+			lock(fakereboot->current_value);
+
+		lock.wait([&lock]
+			  {
+				  return lock->value.null();
+			  });
 	}
 }
 			
