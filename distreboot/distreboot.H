@@ -79,26 +79,8 @@ protected:
 
 	typedef stasher::currentObj<heartbeatptr,
 				    stasher::versionedptr<heartbeatptr>
-				    > currentHeartbeatBaseObj;
+				    > currentHeartbeatObj;
 	
-	// Subclass the current heartbeat object overrides update() to send
-	// an update_my_heartbeat() message to the distreboot instance, upon
-	// receipt of the initial heartbeat object from the repository.
-
-	class currentHeartbeatObj : public currentHeartbeatBaseObj {
-
-		distreboot instance;
-
-	public:
-		currentHeartbeatObj(const distreboot &instanceArg);
-		~currentHeartbeatObj() noexcept;
-
-		// If isinitial, update_my_heartbeat.
-
-		void update(heartbeatptr && newvalue, bool isinitial)
-			override;
-	};
-
 	typedef x::ref<currentHeartbeatObj> currentHeartbeat;
 
 	// The state of the repository

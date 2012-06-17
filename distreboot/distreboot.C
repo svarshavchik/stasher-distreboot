@@ -8,6 +8,7 @@
 #include <stasher/managedserverstatuscallback.H>
 #include <stasher/manager.H>
 #include <stasher/versionedput.H>
+#include <stasher/versionedcurrent.H>
 
 #include <iostream>
 #include <iomanip>
@@ -99,28 +100,6 @@ std::string distrebootObj::heartbeatObj::toString() const
 	return s;
 }
 
-distrebootObj::currentHeartbeatObj
-::currentHeartbeatObj(const distreboot &instanceArg) : instance(instanceArg)
-
-{
-}
-
-distrebootObj::currentHeartbeatObj::~currentHeartbeatObj() noexcept
-{
-}
-
-void distrebootObj::currentHeartbeatObj::update(heartbeatptr && newvalue,
-						bool isinitial)
-{
-	currentHeartbeatBaseObj::update(std::move(newvalue), isinitial);
-
-	if (isinitial)
-	{
-		LOG_DEBUG("Received initial heartbeat object, updating my own");
-		instance->update_my_heartbeat();
-	}
-}
-
 distrebootObj::distrebootObj()
 {
 }
@@ -207,7 +186,21 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 				     ::create(distreboot(this))));
 
 	auto heartbeat_info_instanceRef=
-		currentHeartbeat::create(distreboot(this));
+		({
+			distreboot me(this);
+
+			stasher::make_versioned_current<heartbeatptr>
+				( [me]
+				  (heartbeatptr && val,
+				   bool isinitial)
+				  {
+					  if (!isinitial)
+						  return;
+					  LOG_DEBUG("Received initial heartbeat"
+						    " object, updating my own");
+					  me->update_my_heartbeat();
+				  });
+		});
 
 	heartbeat_info_instance= &heartbeat_info_instanceRef;
 

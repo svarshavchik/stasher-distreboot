@@ -13,7 +13,7 @@ class test1distrebootObj : public distrebootObj {
 
 public:
 
-	typedef x::ref<currentHeartbeatBaseObj> heartbeat;
+	typedef x::ref<currentHeartbeatObj> heartbeat;
 
 	typedef distrebootObj::heartbeat heartbeatval;
 	typedef distrebootObj::heartbeatptr heartbeatvalptr;
