@@ -99,6 +99,48 @@ std::string distrebootObj::heartbeatObj::toString() const
 	ser_iter(timestamps);
 	return s;
 }
+///////////////////////////////////////////////////////////////////////////////
+
+const char distrebootObj::rebootlist_object[]="rebootlist";
+
+distrebootObj::rebootListObj::rebootListObj()
+{
+}
+
+distrebootObj::rebootListObj::rebootListObj(const x::uuid &uuidArg,
+					    const x::fd &fdArg)
+	: uuid(uuidArg)
+{
+	try {
+		x::fdinputiter iter(fdArg), iter_end;
+
+		x::deserialize::iterator<x::fdinputiter>
+			deser_iter(iter, iter_end);
+
+		deser_iter(list);
+	} catch (const x::exception &e)
+	{
+		LOG_FATAL("Reboot list object corrupted, removing: " << e);
+	}
+}
+
+std::string distrebootObj::rebootListObj::toString() const
+{
+	std::string s;
+	std::back_insert_iterator<std::string> iter(s);
+
+	x::serialize::iterator<std::back_insert_iterator<std::string> >
+		ser_iter(iter);
+
+	ser_iter(list);
+	return s;
+}
+
+distrebootObj::rebootListObj::~rebootListObj() noexcept
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////
 
 distrebootObj::distrebootObj()
 {

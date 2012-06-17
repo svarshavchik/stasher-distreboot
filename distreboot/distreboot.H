@@ -83,6 +83,43 @@ protected:
 	
 	typedef x::ref<currentHeartbeatObj> currentHeartbeat;
 
+	// The rebootlist object in the repository
+
+	class rebootListObj : virtual public x::obj {
+
+	public:
+
+		// This object's uuid in the repository
+
+		x::uuid uuid;
+
+		// List of nodes that need to be rebooted. The first one in the
+		// list is the one that's currently rebooting.
+		std::list<std::string> list;
+
+		// Default constructor
+		rebootListObj();
+
+		// Construct from retrieved object file descriptor
+		rebootListObj(const x::uuid &uuidArg, const x::fd &fdArg);
+
+		// Create a string to go into the repository
+		std::string toString() const;
+
+		~rebootListObj() noexcept;
+	};
+
+	// Some convenience typedefs
+	typedef x::ref<rebootListObj> rebootlist;
+	typedef x::ptr<rebootListObj> rebootlistptr;
+
+	// Current rebootlist object. Use a versionedptr, so that it
+	// gets updated by a versioned put.
+
+	typedef stasher::currentObj<rebootlistptr,
+				    stasher::versionedptr<rebootlistptr>
+				    > currentRebootListObj;
+
 	// The state of the repository
 	stasher::req_stat_t	connection_status;
 	stasher::clusterstate	connection_state;
@@ -99,6 +136,10 @@ public:
 	// The name of the heartbeat object in the repository.
 
 	static const char heartbeat_object[];
+
+	// The name of the reboot list object in the repository.
+
+	static const char rebootlist_object[];
 
 	// Arguments to the singleton's invocation
 
