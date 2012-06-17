@@ -523,7 +523,28 @@ void distrebootObj::do_process_rebootlist()
 	{
 		do_just_rebooted();
 		rebootlist_check_done=true;
+		return;
 	}
+
+	{
+		decltype((*rebootlist_instance)->current_value)::lock
+			lock((*rebootlist_instance)->current_value);
+
+		if (lock->value.null())
+			return;
+
+		auto &list=lock->value->list;
+
+		if (list.empty())
+		{
+			LOG_WARNING("Empty rebootlist object");
+			return;
+		}
+
+		if (list.front() != nodename)
+			return;
+	}
+	do_reboot();
 }
 
 // After we received the heartbeat object and the rebootlist
@@ -585,4 +606,10 @@ void distrebootObj::do_just_rebooted()
 						    me->again_just_rebooted();
 					    }
 				    });
+}
+
+// In the real world, this will get overridden
+void distrebootObj::do_reboot()
+{
+	stop();
 }

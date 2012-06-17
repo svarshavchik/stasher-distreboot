@@ -98,9 +98,28 @@ static void test1(test_options &opts)
 				  return list.size() == 1 &&
 					  list.front() == tst_name(1);
 			  });
+
+		std::cout << tst_status(nodes.instances[0].inst);
+
+		*lock->value->list.begin() = tst_name(0);
+
+		std::cout << "Putting fake node at the top of the reboot list"
+			  << std::endl;
+		auto tran=stasher::client::base::transaction::create();
+
+		tran->updobj(distrebootObj::rebootlist_object,
+			     lock->value->uuid,
+			     lock->value->toString());
+
+		auto res=client->put(tran);
+
+		if (res->status != stasher::req_processed_stat)
+			throw EXCEPTION(x::tostring(res->status));
 	}
 
-	std::cout << tst_status(nodes.instances[0].inst);
+	std::cout << "Waiting for the distreboot instance to stop" << std::endl;
+
+	nodes.instances[0].wait();
 }
 
 int main(int argc, char **argv)

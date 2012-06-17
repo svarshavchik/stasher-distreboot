@@ -219,6 +219,11 @@ public:
 	// The singleton thread.
 	ret run(uid_t uid, argsptr &args);
 
+	// Do the actual reboot of this node
+	// Punt it to a subclass. The default implementation just stop()s.
+
+	virtual void do_reboot();
+
 #include "distreboot.msgs.all.H"
 
 };
