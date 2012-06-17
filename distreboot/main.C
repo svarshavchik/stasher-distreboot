@@ -10,10 +10,7 @@ int main(int argc, char **argv)
 
 	auto parser=opts.parse(argc, argv);
 
-	distreboot::base::args args=distreboot::base::args
-		::create(opts.start->value,
-			 opts.stop->value,
-			 opts.node->value);
+	distreboot::base::args args=distreboot::base::args::create(opts);
 
 	auto ret=x::singletonapp
 		::managed([] { return distreboot::create(); }, args);

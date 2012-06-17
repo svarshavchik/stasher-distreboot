@@ -14,6 +14,7 @@
 #include <iomanip>
 #include <sstream>
 #include "distreboot.H"
+#include "distreboot.opts.H"
 
 LOG_CLASS_INIT(distrebootObj);
 
@@ -22,6 +23,13 @@ distrebootObj::heartbeat_interval(L"heartbeat", x::hms(0, 10, 0));
 
 x::property::value<x::hms>
 distrebootObj::stale_interval(L"stale", x::hms(24, 0, 0));
+
+distrebootObj::argsObj::argsObj(const distreboot_options &opts)
+	: start(opts.start->value),
+	  stop(opts.stop->value),
+	  node(opts.node->value)
+{
+}
 
 // Server status callback invoked from the client connection handle
 

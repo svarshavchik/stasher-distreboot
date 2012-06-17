@@ -15,6 +15,7 @@
 
 class distrebootObj;
 class distrebootBase;
+class distreboot_options;
 
 typedef x::ref<distrebootObj, distrebootBase> distreboot;
 
@@ -165,12 +166,7 @@ public:
 		std::string forcenodename; // Used by regression tests
 
 		argsObj() : start(false), stop(false) {}
-		argsObj(bool startArg, bool stopArg,
-			const std::string &nodeArg)
-			: start(startArg), stop(stopArg),
-			  node(nodeArg)
-		{
-		}
+		argsObj(const distreboot_options &opts);
 
 		~argsObj() noexcept 
 		{
