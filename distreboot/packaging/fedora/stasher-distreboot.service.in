@@ -1,0 +1,12 @@
+[Unit]
+Description=A distributed reboot service
+Wants=stasher.service
+After=stasher.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=@sbindir@/distreboot --start
+ExecStop=@sbindir@/distreboot --stop

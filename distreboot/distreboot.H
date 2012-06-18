@@ -25,8 +25,9 @@ typedef x::ptr<distrebootObj, distrebootBase> distrebootptr;
 
 class distrebootObj : public x::eventqueuemsgdispatcherObj {
 
+protected:
 	LOG_CLASS_SCOPE;
-
+private:
 	// Heartbeat interval setting
 
 	static x::property::value<x::hms> heartbeat_interval;

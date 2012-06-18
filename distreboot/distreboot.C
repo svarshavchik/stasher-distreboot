@@ -692,12 +692,19 @@ void distrebootObj::do_just_rebooted()
 
 		list.pop_front();
 
+		LOG_INFO("Marking myself as rebooted");
 		if (list.empty())
+		{
+			LOG_INFO("Reboot list completed");
 			tran->delobj(rebootlist_object, lock->value->uuid);
+		}
 		else
+		{
+			LOG_INFO("Next node to reboot should be "
+				 << list.front());
 			tran->updobj(rebootlist_object, lock->value->uuid,
 				     lock->value->toString());
-		LOG_INFO("Marking myself as rebooted");
+		}
 	}
 
 	distreboot me(this);

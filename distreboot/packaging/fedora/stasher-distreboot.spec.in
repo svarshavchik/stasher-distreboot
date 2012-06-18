@@ -1,0 +1,83 @@
+Summary: Coordinate a reboot of multiple servers
+Name: stasher-distreboot
+Version: @VERSION@
+Release: 1%{?extrarelease}
+License: GPLv3
+Group: System Environment/Daemons
+Source0: %{name}-%{version}.tar.bz2
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRequires: stasher-devel
+Requires: %{_localstatedir}/stasher/apps
+Requires(pre): systemd-units
+Requires(post): systemd-units
+Requires(preun): systemd-units
+Requires(postun): systemd-units
+
+%description
+This package installs a daemon that uses the stasher object repository cluster.
+This daemon gets installed on each server in the cluster, and implements a
+coordinated reboot of all the servers in the cluster, one at a time.
+
+%prep
+%setup -q
+%configure
+
+%build
+%{__make} %{_smp_mflags}
+
+%install
+rm -rf $RPM_BUILD_ROOT
+%{__make} install DESTDIR=$RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT%{_unitdir}
+%{__install} packaging/fedora/stasher-distreboot.service $RPM_BUILD_ROOT%{_unitdir}
+
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/lib/rpm-state/stasher-distreboot
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%pre
+rm -f %{_localstatedir}/lib/rpm-state/stasher-distreboot/restart
+
+if test -d %{_localstatedir}/lib/rpm-state/stasher-distreboot
+then
+	if /bin/systemctl is-active stasher-distreboot.service >/dev/null
+	then
+		/bin/systemctl stop stasher-distreboot.service
+		touch %{_localstatedir}/lib/rpm-state/stasher-distreboot/restart || :
+	fi
+fi
+
+%post
+/bin/systemctl daemon-reload || :
+%{_bindir}/properties --set %{_sysconfdir}/distreboot.properties %{_sbindir}/distreboot >/dev/null
+
+if test -f %{_localstatedir}/lib/rpm-state/stasher-distreboot/restart
+then
+	rm -f %{_localstatedir}/lib/rpm-state/stasher-distreboot/restart
+	/bin/systemctl start stasher-distreboot.service
+fi
+
+%preun
+if test "$1" = "0"
+then
+	/bin/systemctl stop stasher-distreboot.service
+        /bin/systemctl disable stasher-distreboot.service
+fi
+
+%postun
+/bin/systemctl daemon-reload || :
+
+%files
+%defattr(-,root,root,-)
+%config %{_sysconfdir}/*
+%config %{_localstatedir}/stasher/apps/*
+%{_sbindir}/*
+%{_unitdir}/*
+
+%{_localstatedir}/lib/rpm-state
+
+%changelog
+* Sun Jun 17 2012 Sam Varshavchik <mrsam@octopus.email-scan.com> - distreboot-1
+- Initial build.
+

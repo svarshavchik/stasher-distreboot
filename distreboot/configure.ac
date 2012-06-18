@@ -10,5 +10,15 @@ AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_RANLIB
 
-AC_CONFIG_FILES(Makefile)
+AC_ARG_WITH(rebootcmd,[AS_HELP_STRING([--with-rebootcmd=cmd],[Command that gets executed to begin a reboot (default: reboot)])],
+    [REBOOTCMD="$withval"],
+    [REBOOTCMD="reboot"])
+
+REBOOTCMD='"'"$REBOOTCMD"'"'
+
+AC_DEFINE_UNQUOTED(REBOOTCMD,$REBOOTCMD,[Command that gets executed to trigger a reboot])
+
+AC_CONFIG_FILES(Makefile
+	packaging/fedora/stasher-distreboot.spec
+	packaging/fedora/stasher-distreboot.service)
 AC_OUTPUT

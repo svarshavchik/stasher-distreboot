@@ -259,10 +259,10 @@ static void test2(test_options &opts)
 		lock.wait([&lock]
 			  {
 				  if (lock->value.null())
-					  return;
+					  return false;
 
 				  if (lock->value->list.empty())
-					  return;
+					  return false;
 
 				  // Since node0 is master, it must be the
 				  // last one.

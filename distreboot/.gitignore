@@ -3,6 +3,7 @@ Makefile
 Makefile.in
 aclocal.m4
 autom4te.cache
+config.cache
 config.log
 config.status
 configure
@@ -14,9 +15,12 @@ distreboot.msgs.all.H
 distreboot.opts.H
 install-sh
 missing
+rpm
 stamp-h1
 tst.opts.H
 *~
 *.a
 *.o
 *.tst
+*.gz
+*.bz2
