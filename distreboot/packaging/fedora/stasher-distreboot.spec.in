@@ -75,7 +75,7 @@ fi
 %{_sbindir}/*
 %{_unitdir}/*
 
-%{_localstatedir}/lib/rpm-state
+%{_localstatedir}/lib/rpm-state/*
 
 %changelog
 * Sun Jun 17 2012 Sam Varshavchik <mrsam@octopus.email-scan.com> - distreboot-1
