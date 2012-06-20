@@ -1,3 +1,6 @@
+# Copyright 2012 Double Precision, Inc.
+# See COPYING for distribution information.
+
 [Unit]
 Description=A distributed reboot service
 Wants=stasher.service
@@ -10,3 +13,4 @@ WantedBy=multi-user.target
 Type=simple
 ExecStart=@sbindir@/distreboot --start
 ExecStop=@sbindir@/distreboot --stop
+

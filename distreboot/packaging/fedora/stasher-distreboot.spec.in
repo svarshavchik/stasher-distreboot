@@ -1,3 +1,6 @@
+# Copyright 2012 Double Precision, Inc.
+# See COPYING for distribution information.
+
 Summary: Coordinate a reboot of multiple servers
 Name: stasher-distreboot
 Version: @VERSION@

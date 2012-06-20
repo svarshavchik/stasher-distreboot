@@ -1,3 +1,6 @@
+# Copyright 2012 Double Precision, Inc.
+# See COPYING for distribution information.
+
 AC_PREREQ([2.66])
 AC_INIT(stasher-distreboot, 0.01, [mrsam@courier-mta.com])
 AM_INIT_AUTOMAKE(dist-bzip2 foreign)

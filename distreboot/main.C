@@ -1,3 +1,8 @@
+/*
+** Copyright 2012 Double Precision, Inc.
+** See COPYING for distribution information.
+*/
+
 #include "distreboot_config.h"
 #include <x/options.H>
 #include <x/property_value.H>

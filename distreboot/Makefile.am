@@ -6,7 +6,8 @@ $(call MSGDISPATCHER_GEN,distreboot.msgs,all,dispatch=protected messages=protect
 $(call OPTIONS_GEN,distreboot.opts.H,distreboot.opts.xml)
 $(call OPTIONS_GEN,tst.opts.H,tst.opts.xml)
 
-EXTRA_DIST=packaging/fedora/stasher-distreboot.spec \
+EXTRA_DIST=COPYING COPYING.GPL \
+	packaging/fedora/stasher-distreboot.spec \
 	packaging/fedora/stasher-distreboot.spec.in \
         packaging/fedora/stasher-distreboot.service.in
 

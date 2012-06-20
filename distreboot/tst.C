@@ -1,3 +1,8 @@
+/*
+** Copyright 2012 Double Precision, Inc.
+** See COPYING for distribution information.
+*/
+
 #include "distreboot_config.h"
 #include "tst.H"
 #include <stasher/client.H>

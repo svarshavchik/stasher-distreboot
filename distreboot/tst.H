@@ -1,3 +1,8 @@
+/*
+** Copyright 2012 Double Precision, Inc.
+** See COPYING for distribution information.
+*/
+
 #ifndef tst_H
 #define tst_H
 
