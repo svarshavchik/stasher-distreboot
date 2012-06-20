@@ -51,12 +51,22 @@
     <descr>Cancel reboots that have not begun yet</descr>
   </option>
 
+  <option>
+    <name>drop</name>
+    <type>std::string</type>
+    <longopt>drop</longopt>
+    <hasvalue />
+    <argdescr>nodename</argdescr>
+    <descr>Manually remove nodename's stale heartbeat</descr>
+  </option>
+
   <mutex>
     <name>start</name>
     <name>stop</name>
     <name>reboot</name>
     <name>dry_run</name>
     <name>cancel</name>
+    <name>drop</name>
   </mutex>
 
   <defaultoptions />

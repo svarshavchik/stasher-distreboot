@@ -167,6 +167,7 @@ public:
 		bool reboot; // --reboot
 		bool cancel; // --cancel
 		bool dry_run; // --dry-run
+		std::string drop; // --drop
 		std::string node;  // --repo
 
 		std::string forcenodename; // Used by regression tests
@@ -187,6 +188,7 @@ public:
 			iter(cancel);
 			iter(dry_run);
 			iter(node);
+			iter(drop);
 		}
 	};
 

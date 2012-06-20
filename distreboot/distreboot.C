@@ -30,6 +30,7 @@ distrebootObj::argsObj::argsObj(const distreboot_options &opts)
 	  reboot(opts.reboot->value),
 	  cancel(opts.cancel->value),
 	  dry_run(opts.dry_run->value),
+	  drop(opts.drop->value),
 	  node(opts.node->value)
 {
 }
@@ -430,6 +431,63 @@ void distrebootObj::dispatch(const instance_msg &msg)
 						 if (res->status != stasher::
 						     req_processed_stat)
 							 msg.retArg->exitcode=1;
+					 });
+		return;
+	}
+
+	if (msg.command->drop.size() > 0)
+	{
+		decltype( (*heartbeat_info_instance)->current_value )::lock
+			lock( (*heartbeat_info_instance)->current_value);
+
+		if (lock->value.null())
+		{
+			msg.retArg->message="Not yet initialized";
+			msg.retArg->exitcode=1;
+			return;
+		}
+
+		auto &timestamps=lock->value->timestamps;
+
+		auto p=timestamps.find(msg.command->drop);
+
+		if (p == timestamps.end())
+		{
+			msg.retArg->message=msg.command->drop
+				+ " node unknown";
+			msg.retArg->exitcode=1;
+			return;
+		}
+
+		if (p->second > time(NULL))
+		{
+			msg.retArg->message=msg.command->drop
+				+ " node heartbeat not yet stale";
+			msg.retArg->exitcode=1;
+			return;
+		}
+
+		timestamps.erase(p);
+
+		auto tran=stasher::client::base::transaction::create();
+
+		tran->updobj(heartbeat_object,
+			     lock->value->uuid,
+			     lock->value->toString());
+
+		stasher::process_request((*client)->put_request(tran),
+					 [msg]
+					 (const stasher::putresults &res)
+					 {
+						 msg.retArg->message=
+							 x::tostring(res->status
+								     );
+
+						 if (res->status != stasher::
+						     req_processed_stat)
+						 {
+							 msg.retArg->exitcode=1;
+						 }
 					 });
 		return;
 	}
