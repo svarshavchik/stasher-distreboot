@@ -86,7 +86,7 @@ void tst_clean(const stasher::client &client)
 	set.insert(distrebootObj::heartbeat_object);
 	set.insert(distrebootObj::rebootlist_object);
 
-	auto contents=client->getcontents(set)->objects;
+	auto contents=client->get(set)->objects;
 
 	if (!contents->succeeded)
 		throw EXCEPTION(contents->errmsg);
