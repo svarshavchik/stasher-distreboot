@@ -85,17 +85,20 @@ distrebootObj::heartbeatObj::heartbeatObj(const x::uuid &uuidArg,
 					  const x::fd &fdArg)
 	: uuid(uuidArg)
 {
-	try {
-		x::fdinputiter iter(fdArg), iter_end;
+	x::fdinputiter iter(fdArg), iter_end;
 
-		x::deserialize::iterator<x::fdinputiter>
-			deser_iter(iter, iter_end);
+	x::deserialize::iterator<x::fdinputiter>
+		deser_iter(iter, iter_end);
 
-		deser_iter(timestamps);
-	} catch (const x::exception &e)
-	{
-		LOG_FATAL("Heartbeat object corrupted, removing: " << e);
-	}
+	deser_iter(timestamps);
+}
+
+// Error recovery
+
+distrebootObj::heartbeatObj::heartbeatObj(const x::uuid &uuidArg)
+	: uuid(uuidArg)
+{
+	LOG_FATAL("Heartbeat object corrupted, removing it");
 }
 
 // Serialize the heartbeat object, before putting it into the repository.
@@ -123,17 +126,18 @@ distrebootObj::rebootListObj::rebootListObj(const x::uuid &uuidArg,
 					    const x::fd &fdArg)
 	: uuid(uuidArg)
 {
-	try {
-		x::fdinputiter iter(fdArg), iter_end;
+	x::fdinputiter iter(fdArg), iter_end;
 
-		x::deserialize::iterator<x::fdinputiter>
-			deser_iter(iter, iter_end);
+	x::deserialize::iterator<x::fdinputiter>
+		deser_iter(iter, iter_end);
 
-		deser_iter(list);
-	} catch (const x::exception &e)
-	{
-		LOG_FATAL("Reboot list object corrupted, removing: " << e);
-	}
+	deser_iter(list);
+}
+
+distrebootObj::rebootListObj::rebootListObj(const x::uuid &uuidArg)
+	: uuid(uuidArg)
+{
+	LOG_FATAL("Reboot list object corrupted, removing it");
 }
 
 std::string distrebootObj::rebootListObj::toString() const

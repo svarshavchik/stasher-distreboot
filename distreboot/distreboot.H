@@ -71,6 +71,9 @@ protected:
 		// Construct from retrieved object file descriptor
 		heartbeatObj(const x::uuid &uuidArg, const x::fd &fdArg);
 
+		// Corrupted object, construct an empty heartbeat instance
+		heartbeatObj(const x::uuid &uuidArg);
+
 		// Create a string to go into the repository
 		std::string toString() const;
 
@@ -109,6 +112,9 @@ protected:
 
 		// Construct from retrieved object file descriptor
 		rebootListObj(const x::uuid &uuidArg, const x::fd &fdArg);
+
+		// Corrupted object, construct an empty reboot list
+		rebootListObj(const x::uuid &uuidArg);
 
 		// Create a string to go into the repository
 		std::string toString() const;
