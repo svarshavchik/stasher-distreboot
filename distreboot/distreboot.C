@@ -245,7 +245,7 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 
 			stasher::make_versioned_current<heartbeatptr>
 				( [me]
-				  (heartbeatptr && val,
+				  (const heartbeatptr &val,
 				   bool isinitial)
 				  {
 					  if (!isinitial)
@@ -293,7 +293,7 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 
 			stasher::make_versioned_current<rebootlistptr>
 				( [me]
-				  (rebootlistptr && val,
+				  (const rebootlistptr &val,
 				   bool isinitial)
 				  {
 					  me->rebootlist_updated();
