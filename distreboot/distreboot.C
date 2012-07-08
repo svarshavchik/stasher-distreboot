@@ -651,24 +651,22 @@ void distrebootObj::do_update_my_heartbeat()
 
 	distreboot me(this);
 
-	stasher::versioned_put_from(*client, tran,
-				    [me]
-				    (const stasher::putresults &res)
-				    {
-					    LOG_TRACE("Heartbeat update "
-						      "processed: "
-						      + x::tostring(res->status)
-						      );
+	stasher::versioned_put_request_from
+		(*client, tran,
+		 [me]
+		 (const stasher::putresults &res)
+		 {
+			 LOG_TRACE("Heartbeat update processed: "
+				   + x::tostring(res->status));
 
-					    if (res->status ==
-						stasher::req_rejected_stat)
-						    me->update_my_heartbeat();
-					    // Again, handle collisions.
-				    },
+			 if (res->status == stasher::req_rejected_stat)
+				 me->update_my_heartbeat();
+			 // Again, handle collisions.
+		 },
 
-				    // Versioned object that went into the
-				    // transaction.
-				    lock->value);
+		 // Versioned object that went into the
+		 // transaction.
+		 lock->value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -771,20 +769,18 @@ void distrebootObj::do_just_rebooted()
 
 	distreboot me(this);
 
-	stasher::versioned_put_from(*client, tran,
-				    [me]
-				    (const stasher::putresults &res)
-				    {
-					    LOG_TRACE("Rebootlist update "
-						      "processed: "
-						      + x::tostring(res->status)
-						      );
-					    if (res->status ==
-						stasher::req_rejected_stat)
-					    {
-						    me->again_just_rebooted();
-					    }
-				    });
+	stasher::versioned_put_request_from
+		(*client, tran,
+		 [me]
+		 (const stasher::putresults &res)
+		 {
+			 LOG_TRACE("Rebootlist update processed: "
+				   + x::tostring(res->status));
+			 if (res->status == stasher::req_rejected_stat)
+			 {
+				 me->again_just_rebooted();
+			 }
+		 });
 }
 
 std::pair<distrebootObj::rebootlistptr, std::string>
