@@ -7,7 +7,7 @@ AM_INIT_AUTOMAKE(dist-bzip2 foreign)
 AC_CONFIG_SRCDIR([distreboot.C])
 AC_CONFIG_HEADERS([distreboot_config.h])
 
-LIBX_INIT
+LIBCXX_INIT
 
 AC_PROG_CXX
 AC_PROG_CC

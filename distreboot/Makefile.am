@@ -1,4 +1,4 @@
-@LIBX_AM@
+@LIBCXX_AM@
 
 AUTOMAKE_OPTIONS=foreign dist-bzip2 -Wno-portability
 
@@ -18,13 +18,13 @@ sbin_PROGRAMS=distreboot
 noinst_PROGRAMS=connect.tst reboot.tst
 
 distreboot_SOURCES=main.C
-distreboot_LDADD=libdistreboot.a -lstasher-client -lx
+distreboot_LDADD=libdistreboot.a -lstasher-client -lcxx
 
 connect_tst_SOURCES=connect.tst.C tst.C tst.H
-connect_tst_LDADD=libdistreboot.a -lstasher-client -lx
+connect_tst_LDADD=libdistreboot.a -lstasher-client -lcxx
 
 reboot_tst_SOURCES=reboot.tst.C tst.C tst.H
-reboot_tst_LDADD=libdistreboot.a -lstasher-client -lx
+reboot_tst_LDADD=libdistreboot.a -lstasher-client -lcxx
 
 check-am:
 	./connect.tst
