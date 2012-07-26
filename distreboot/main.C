@@ -7,6 +7,7 @@
 #include <x/options.H>
 #include <x/property_value.H>
 #include <x/globlock.H>
+#include <x/forkexec.H>
 #include <x/sysexception.H>
 #include "distreboot.H"
 #include "distreboot.opts.H"
@@ -28,21 +29,17 @@ void rebootimplObj::do_reboot()
 
 	LOG_INFO("Executing " << cmd);
 
-	pid_t p=x::fork();
-
-	if (p < 0)
-		throw SYSEXCEPTION("fork");
-
-	if (p)
-	    return;
-
 	const char *shell=getenv("SHELL");
 
 	if (!shell || !*shell)
 		shell="/bin/sh";
 
-	execl(shell, shell, "-c", cmd.c_str(), (char *)nullptr);
-	LOG_FATAL(shell);
+	try {
+		x::forkexec(shell, "-c", cmd).spawn_detached();
+	} catch (const x::exception &e)
+	{
+		LOG_FATAL(cmd << ": " << e);
+	}
 	_exit(1);
 }
 
