@@ -17,8 +17,6 @@ public:
 	typedef distrebootObj::rebootlist rebootlistval;
 	typedef distrebootObj::rebootlistptr rebootlistvalptr;
 
-	typedef distrebootObj::heartbeat heartbeat;
-
 	std::string fakemaster;
 	std::set<std::string> fakenodes;
 	bool fakefull;
@@ -172,12 +170,12 @@ static void test2(test_options &opts)
 
 	{
 		auto fake_heartbeat=
-			test1distrebootObj::heartbeat::create();
+			stasher::current_heartbeat<std::string, void>::create();
 
 		time_t now=time(NULL)+600;
 
-		fake_heartbeat->timestamps[tst_name(1)]=now;
-		fake_heartbeat->timestamps[tst_name(2)]=now;
+		fake_heartbeat->timestamps.update(tst_name(1), now);
+		fake_heartbeat->timestamps.update(tst_name(2), now);
 
 		auto transaction=stasher::client::base::transaction::create();
 
@@ -298,12 +296,13 @@ static void test3(test_options &opts)
 	x::uuid original_uuid=({
 
 			auto fake_heartbeat=
-				test1distrebootObj::heartbeat::create();
+				stasher::current_heartbeat<std::string,
+							   void>::create();
 
 			time_t now=time(NULL);
 
-			fake_heartbeat->timestamps[tst_name(1)]=now+600;
-			fake_heartbeat->timestamps[tst_name(2)]=now-60;
+			fake_heartbeat->timestamps.update(tst_name(1), now+600);
+			fake_heartbeat->timestamps.update(tst_name(2), now-60);
 
 			auto transaction=stasher::client::base::transaction
 				::create();

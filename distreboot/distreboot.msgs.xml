@@ -91,9 +91,15 @@ See COPYING for distribution information.
     </param>
   </method>
 
-  <method name="update_my_heartbeat">
-    <comment>//! Update my heartbeat immediately.</comment>
+  <method name="update_heartbeat_request">
+    <comment>//! Update my node's heartbeat</comment>
 
+    <param>
+      <comment>//! Heartbeat update type</comment>
+
+      <decl>stasher::heartbeat&lt;std::string, void&gt;::base::update_type_t
+      <name>update_type</name></decl>
+    </param>
   </method>
 
   <method name="rebootlist_updated">

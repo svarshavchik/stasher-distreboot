@@ -17,6 +17,7 @@
 
 #include <stasher/client.H>
 #include <stasher/current.H>
+#include <stasher/heartbeat.H>
 
 class distrebootObj;
 class distrebootBase;
@@ -32,66 +33,11 @@ class distrebootObj : public x::eventqueuemsgdispatcherObj {
 
 protected:
 	LOG_CLASS_SCOPE;
-private:
-	// Heartbeat interval setting
-
-	static x::property::value<x::hms> heartbeat_interval;
-
-	// This long after the heartbeat's expiration, it's subject to purging
-
-	static x::property::value<x::hms> stale_interval;
 
 protected:
 	stasher::client *client; // On the executing thread's stack
 
 	class serverStatusCallbackObj;
-
-	// The heartbeat object in the repository gets parsed into here.
-
-	class heartbeatObj : virtual public x::obj {
-
-	public:
-		// Keys are node names. Value is the epoch time the heartbeat
-		// expires, the node is considered to be unavailable at that
-		// time.
-
-		typedef std::map<std::string, time_t> timestamps_t;
-
-		// This object's uuid in the repository
-
-		x::uuid uuid;
-
-		// Each node's timestamp
-
-		timestamps_t timestamps;
-
-		// Default constructor
-		heartbeatObj();
-
-		// Construct from retrieved object file descriptor
-		heartbeatObj(const x::uuid &uuidArg, const x::fd &fdArg);
-
-		// Corrupted object, construct an empty heartbeat instance
-		heartbeatObj(const x::uuid &uuidArg);
-
-		// Create a string to go into the repository
-		std::string toString() const;
-
-		~heartbeatObj() noexcept {}
-	};
-
-	// Some convenience typedefs
-	typedef x::ref<heartbeatObj> heartbeat;
-	typedef x::ptr<heartbeatObj> heartbeatptr;
-
-	// Current heartbeat object. Use a versionedptr, so that it
-	// gets updated by a versioned put.
-
-	typedef stasher::currentObj<heartbeatptr,
-				    stasher::versionedptr<heartbeatptr>
-				    > currentHeartbeatObj;
-	
-	typedef x::ref<currentHeartbeatObj> currentHeartbeat;
 
 	// The rebootlist object in the repository
 
@@ -149,11 +95,18 @@ protected:
 	// Initial check, after starting, to remove my node from the reboot
 	// list, if it's at the top of the list.
 
+	typedef stasher::heartbeat<std::string, void> heartbeat_t;
+	typedef stasher::heartbeatptr<std::string, void> heartbeatptr_t;
 
-	currentHeartbeat *heartbeat_info_instance; // On the executing thread's stack
+	heartbeatptr_t *heartbeatptr_instance;
+	// On the executing thread's stack
+
+	stasher::manager *managerp; // On the executing thread's stack
+	stasher::heartbeatptr<std::string, void>::obj_type *heartbeatp;
+	// On the executing thread's stack, when the heartbeat object is
+	// created.
+
 	currentRebootList *rebootlist_instance; // On the executing thread's stack
-
-	void do_update_my_heartbeat();
 
 	void do_process_rebootlist();
 	virtual void do_just_rebooted();

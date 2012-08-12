@@ -18,12 +18,6 @@
 
 LOG_CLASS_INIT(distrebootObj);
 
-x::property::value<x::hms>
-distrebootObj::heartbeat_interval(L"heartbeat", x::hms(0, 10, 0));
-
-x::property::value<x::hms>
-distrebootObj::stale_interval(L"stale", x::hms(24, 0, 0));
-
 distrebootObj::argsObj::argsObj(const distreboot_options &opts)
 	: start(opts.start->value),
 	  stop(opts.stop->value),
@@ -75,45 +69,6 @@ public:
 
 const char distrebootObj::heartbeat_object[]="heartbeat";
 
-distrebootObj::heartbeatObj::heartbeatObj()
-{
-}
-
-// Read the heartbeat object from the filehandle.
-
-distrebootObj::heartbeatObj::heartbeatObj(const x::uuid &uuidArg,
-					  const x::fd &fdArg)
-	: uuid(uuidArg)
-{
-	x::fdinputiter iter(fdArg), iter_end;
-
-	x::deserialize::iterator<x::fdinputiter>
-		deser_iter(iter, iter_end);
-
-	deser_iter(timestamps);
-}
-
-// Error recovery
-
-distrebootObj::heartbeatObj::heartbeatObj(const x::uuid &uuidArg)
-	: uuid(uuidArg)
-{
-	LOG_FATAL("Heartbeat object corrupted, removing it");
-}
-
-// Serialize the heartbeat object, before putting it into the repository.
-
-std::string distrebootObj::heartbeatObj::toString() const
-{
-	std::string s;
-	std::back_insert_iterator<std::string> iter(s);
-
-	x::serialize::iterator<std::back_insert_iterator<std::string> >
-		ser_iter(iter);
-
-	ser_iter(timestamps);
-	return s;
-}
 ///////////////////////////////////////////////////////////////////////////////
 
 const char distrebootObj::rebootlist_object[]="rebootlist";
@@ -238,56 +193,17 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 	// Subscribe to the latest news.
 
 	auto manager=stasher::manager::create();
+	managerp=&manager;
+
 	auto server_status_subscription=manager->manage_serverstatusupdates
 		(clientInstance,
 		 guard_subscriptions(x::ref<serverStatusCallbackObj>
 				     ::create(distreboot(this))));
 
-	auto heartbeat_info_instanceRef=
-		({
-			distreboot me(this);
+	heartbeatptr_t heartbeatptr_instanceRef;
 
-			stasher::make_versioned_current<heartbeatptr>
-				( [me]
-				  (const heartbeatptr &val,
-				   bool isinitial)
-				  {
-					  if (!isinitial)
-						  return;
-					  LOG_DEBUG("Received initial heartbeat"
-						    " object, updating my own");
-					  me->update_my_heartbeat();
-				  });
-		});
-
-	heartbeat_info_instance= &heartbeat_info_instanceRef;
-
-	guard_subscriptions(heartbeat_info_instanceRef);
-
-	auto heartbeat_info_instance_mcguffin=
-		heartbeat_info_instanceRef->manage(manager, clientInstance,
-						   heartbeat_object);
-
-	// Make arrangements to call update_my_heartbeat() periodically
-
-	auto update_heartbeat_mcguffin=({
-
-			auto this_task=distreboot(this);
-
-			auto update_heartbeat_functor=x::timertask::base::
-				make_timer_task([this_task] {
-						this_task->
-							update_my_heartbeat();
-					});
-
-			auto mcguffin=update_heartbeat_functor->autocancel();
-
-			x::timer::base::global()
-				->scheduleAtFixedRate(update_heartbeat_functor,
-						      L"heartbeat",
-						      std::chrono::minutes(10));
-			mcguffin;
-		});
+	heartbeatptr_instance= &heartbeatptr_instanceRef;
+	heartbeatp=nullptr;
 
 	// Initialize rebootlist
 
@@ -441,58 +357,20 @@ void distrebootObj::dispatch(const instance_msg &msg)
 
 	if (msg.command->drop.size() > 0)
 	{
-		decltype( (*heartbeat_info_instance)->current_value )::lock
-			lock( (*heartbeat_info_instance)->current_value);
-
-		if (lock->value.null())
+		if (!heartbeatp)
 		{
-			msg.retArg->message="Not yet initialized";
+			msg.retArg->message="Waiting for connection with server";
 			msg.retArg->exitcode=1;
 			return;
 		}
 
-		auto &timestamps=lock->value->timestamps;
-
-		auto p=timestamps.find(msg.command->drop);
-
-		if (p == timestamps.end())
-		{
-			msg.retArg->message=msg.command->drop
-				+ " node unknown";
-			msg.retArg->exitcode=1;
-			return;
-		}
-
-		if (p->second > time(NULL))
-		{
-			msg.retArg->message=msg.command->drop
-				+ " node heartbeat not yet stale";
-			msg.retArg->exitcode=1;
-			return;
-		}
-
-		timestamps.erase(p);
-
-		auto tran=stasher::client::base::transaction::create();
-
-		tran->updobj(heartbeat_object,
-			     lock->value->uuid,
-			     lock->value->toString());
-
-		stasher::process_request((*client)->put_request(tran),
-					 [msg]
-					 (const stasher::putresults &res)
-					 {
-						 msg.retArg->message=
-							 x::tostring(res->status
-								     );
-
-						 if (res->status != stasher::
-						     req_processed_stat)
-						 {
-							 msg.retArg->exitcode=1;
-						 }
-					 });
+		heartbeatp->admin_drop(msg.command->drop,
+				       [msg]
+				       (bool flag, const std::string &status)
+				       {
+					       msg.retArg->message=status;
+					       msg.retArg->exitcode=flag ? 0:1;
+				       });
 		return;
 	}
 
@@ -515,41 +393,14 @@ void distrebootObj::dispatch(const instance_msg &msg)
 		  << std::endl;
 	}
 
+	if (heartbeatp)
 	{
-		decltype( (*heartbeat_info_instance)->current_value )::lock
-			lock( (*heartbeat_info_instance)->current_value);
-
-		if (lock->value.null())
-		{
-			o << "Heartbeat status not received yet" << std::endl;
-		}
-		else
-		{
-			o << "Heartbeat status (uuid "
-			  << x::tostring(lock->value->uuid)
-			  << "):" << std::endl;
-
-			size_t max_len=0;
-
-			for (auto &timestamp:lock->value->timestamps)
-			{
-				size_t s=timestamp.first.size();
-
-				if (s > max_len)
-					max_len=s;
-			}
-
-			for (auto &timestamp:lock->value->timestamps)
-			{
-				o << "    "
-				  << std::setw(max_len)
-				  << timestamp.first
-				  << std::setw(0)
-				  << " expires on "
-				  << (std::string)x::ymdhms(timestamp.second)
-				  << std::endl;
-			}
-		}
+		heartbeatp->report(o);
+	}
+	else
+	{
+		o << "Waiting for initial connection with the server"
+		  << std::endl;
 	}
 
 	msg.retArg->message=o.str();
@@ -576,97 +427,43 @@ void distrebootObj::dispatch(const serverinfo_msg &msg)
 		nodename=connection_info.nodename;
 		LOG_TRACE("Node name is " << nodename);
 	}
-}
 
-void distrebootObj::dispatch(const update_my_heartbeat_msg &msg)
-{
-	heartbeat_received=true;
-	do_update_my_heartbeat();
-	do_process_rebootlist();
-}
+	if (heartbeatp)
+		return;
 
-void distrebootObj::do_update_my_heartbeat()
-{
-	LOG_DEBUG("Updating my heartbeat");
-
-	// We'll update our heartbeat every heartbeat_interval. Announce our
-	// expiration date as a little bit beyond that, to give us some
-	// extra breathing room.
-	time_t my_expiration = time(NULL)
-		+ heartbeat_interval.getValue().seconds()*3/2;
-	LOG_TRACE("My expiration(" << nodename << ") is "
-		  << (std::string)x::ymdhms(my_expiration));
-	auto tran=stasher::client::base::transaction::create();
-
-	// Hold a lock on the current value while preparing the transaction.
-
-	decltype((*heartbeat_info_instance)->current_value)
-		::lock lock((*heartbeat_info_instance)->current_value);
-
-	heartbeatptr current_heartbeat=lock->value;
-
-	if (current_heartbeat.null())
-	{
-		LOG_TRACE("Heartbeat object does not exist, creating new one");
-
-		auto new_heartbeat=heartbeat::create();
-
-		new_heartbeat->timestamps[nodename]=my_expiration;
-
-		tran->newobj(heartbeat_object, new_heartbeat->toString());
-	}
-	else
-	{
-		auto &existing_heartbeat=*current_heartbeat;
-
-		LOG_TRACE("Updating existing heartbeat object");
-
-		// Purge stale heartbeats
-
-		time_t t=time(NULL);
-		time_t stale=stale_interval.getValue().seconds();
-
-		for (auto b=existing_heartbeat.timestamps.begin(),
-			     e=existing_heartbeat.timestamps.end(); b != e; )
-		{
-			auto p=b;
-
-			++b;
-
-			if (p->second + stale > t)
-				continue;
-
-			LOG_WARNING("Stale heartbeat for "
-				    << p->first << " purged");
-			existing_heartbeat.timestamps.erase(p);
-		}
-
-		existing_heartbeat.timestamps[nodename]=my_expiration;
-		tran->updobj(heartbeat_object,
-			     existing_heartbeat.uuid,
-			     existing_heartbeat.toString());
-	}
-
-	// In the event of a collision, know who to poke.
+	// First server status received, install the heartbeat object.
 
 	distreboot me(this);
 
-	stasher::versioned_put_request_from
-		(*client, tran,
-		 [me]
-		 (const stasher::putresults &res)
-		 {
-			 LOG_TRACE("Heartbeat update processed: "
-				   + x::tostring(res->status));
+	auto h=stasher::heartbeat<std::string, void>::create
+		( *managerp, *client, heartbeat_object,
+		  nodename, L"heartbeat",
+		  std::chrono::minutes(10),
+		  L"stale",
+		  std::chrono::hours(24),
+		  [me]
+		  (stasher::heartbeat<std::string, void>
+		   ::base::update_type_t update_type)
+		  {
+			  me->update_heartbeat_request
+			  (update_type);
+		  });
 
-			 if (res->status == stasher::req_rejected_stat)
-				 me->update_my_heartbeat();
-			 // Again, handle collisions.
-		 },
+	*heartbeatptr_instance=h;
+	heartbeatp=&*h;
+}
 
-		 // Versioned object that went into the
-		 // transaction.
-		 lock->value);
+void distrebootObj::dispatch(const update_heartbeat_request_msg &msg)
+{
+	heartbeat_received=true;
+
+	if (heartbeatp) // Should always be the case
+	{
+		LOG_DEBUG("Updating my heartbeat");
+		heartbeatp->update(msg.update_type);
+	}
+
+	do_process_rebootlist();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -813,11 +610,18 @@ distrebootObj::create_rebootlist()
 
 	time_t now=time(NULL);
 
+	if (!heartbeatp)
 	{
-		decltype((*heartbeat_info_instance)->current_value)
-			::lock lock((*heartbeat_info_instance)->current_value);
+		return std::make_pair(rebootlistptr(),
+				      "No connection with the server");
+	}
 
-		heartbeatptr current_heartbeat=lock->value;
+	{
+		stasher::heartbeat<std::string, void>::base::lock
+			lock(*heartbeatp);
+
+		stasher::current_heartbeatptr<std::string, void>
+			current_heartbeat=lock->value;
 
 		if (!current_heartbeat.null())
 		{
@@ -825,7 +629,7 @@ distrebootObj::create_rebootlist()
 			{
 				nodes.insert(member.first);
 
-				if (now < member.second)
+				if (now < member.second.timestamp)
 					continue;
 
 				return std::make_pair(rebootlistptr(),

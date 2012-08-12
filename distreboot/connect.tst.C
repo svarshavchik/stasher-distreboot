@@ -18,10 +18,8 @@ class test1distrebootObj : public distrebootObj {
 
 public:
 
-	typedef x::ref<currentHeartbeatObj> heartbeat;
-
-	typedef distrebootObj::heartbeat heartbeatval;
-	typedef distrebootObj::heartbeatptr heartbeatvalptr;
+	typedef stasher::current_heartbeat<std::string, void> heartbeatval;
+	typedef stasher::current_heartbeatptr<std::string, void> heartbeatvalptr;
 
 	class meta_t {
 	public:
@@ -88,7 +86,7 @@ static void test1(test_options &opts)
 	auto manager=stasher::manager::create();
 
 	auto current_heartbeat=
-		test1distrebootObj::heartbeat::create();
+		stasher::heartbeat<std::string, void>::base::current_t::create();
 
 	auto mcguffin=current_heartbeat->manage(manager, client,
 						distrebootObj
@@ -120,7 +118,8 @@ static void test1(test_options &opts)
 					  std::cout << timestamp.first
 						    << " expires on "
 						    << (std::string)
-						  x::ymdhms(timestamp.second)
+						  x::ymdhms(timestamp.second
+							    .timestamp)
 						    << std::endl;
 				  }
 
@@ -153,7 +152,8 @@ static void test1(test_options &opts)
 				  if (iter == timestamps.end())
 					  return false;
 
-				  if (iter->second == timestamp.second)
+				  if (iter->second.timestamp
+				      == timestamp.second.timestamp)
 					  return false;
 			  }
 			  return true;
