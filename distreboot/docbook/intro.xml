@@ -1,0 +1,37 @@
+<!--
+
+Copyright 2012 Double Precision, Inc.
+See COPYING for distribution information.
+
+-->
+
+<preface id="index">
+  <title>&distreboot; &mdash; distributed, coordinated cluster reboot</title>
+
+  <section id="intro">
+    <title>Introduction</title>
+
+    <para>
+      &distreboot; is a sample application written with the &stasher;
+      <acronym>API</acronym>.
+      &distreboot; gets installed on every node in a &stasher; object repository
+      cluster. It coordinates an orderly reboot of all nodes in the object
+      repository cluster, one node at a time. After each nodes reboots,
+      rejoins the cluster, and resynchronizes with the &stasher; object
+      repository, the next node begins rebooting.
+    </para>
+
+    <para>
+      &distreboot; chooses the reboot order so that the current &stasher;
+      master node gets rebooted last. As such, a distributed reboot will result
+      in the &stasher; master node transitioning to a different node only
+      once.
+    </para>
+  </section>
+</preface>
+<!--
+Local Variables:
+mode: sgml
+sgml-parent-document: ("book.xml" "book" "preface")
+End:
+-->

@@ -1,0 +1,44 @@
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+ "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+
+<!ENTITY intro SYSTEM "intro.xml">
+<!ENTITY install SYSTEM "install.xml">
+<!ENTITY distreboot8 SYSTEM "distreboot.xml">
+<!ENTITY distreboot "<application>distreboot</application>">
+<!ENTITY stasher "<application>stasher</application>">
+<!ENTITY libx "<application>LIBCXX</application>">
+
+]>
+
+<!--
+
+Copyright 2012 Double Precision, Inc.
+See COPYING for distribution information.
+
+-->
+
+
+<book id="toc">
+  <title>&distreboot; &mdash; distributed, coordinated cluster reboot</title>
+
+  &intro;
+  &install;
+
+  <reference id="reference">
+    <title>Reference pages</title>
+
+    &distreboot8;
+  </reference>
+
+  <appendix id="COPYING">
+    <title>COPYING</title>
+
+    <para role="COPYING">
+      &distreboot; is free software, distributed under the terms of the
+      GPL, version 3:
+    </para>
+    <blockquote>
+      <literallayout><xi:include href="../COPYING.GPL" parse="text" xmlns:xi="http://www.w3.org/2001/XInclude" /></literallayout>
+    </blockquote>
+  </appendix>
+</book>

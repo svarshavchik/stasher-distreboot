@@ -2,11 +2,13 @@
 
 AUTOMAKE_OPTIONS=foreign dist-bzip2 -Wno-portability
 
+man8_MANS=distreboot.8
+
 $(call MSGDISPATCHER_GEN,distreboot.msgs,all,dispatch=protected messages=protected)
 $(call OPTIONS_GEN,distreboot.opts.H,distreboot.opts.xml)
 $(call OPTIONS_GEN,tst.opts.H,tst.opts.xml)
 
-EXTRA_DIST=COPYING COPYING.GPL \
+EXTRA_DIST=COPYING COPYING.GPL INSTALL distreboot.8\
 	packaging/fedora/stasher-distreboot.spec \
 	packaging/fedora/stasher-distreboot.spec.in \
         packaging/fedora/stasher-distreboot.service.in
@@ -48,6 +50,37 @@ install-exec-hook:
 uninstall-hook:
 	rm -f '$(APPFILE)'
 	rm -f $(DESTDIR)@sysconfdir@/distreboot.properties
+
+.PHONY: docs
+
+if HAVE_DOCBOOK
+docs: html/book.css
+
+distreboot.8: docbook/distreboot.xml
+	rm -rf manpages
+	mkdir -p manpages
+	xsltproc --nonet -o manpages/ http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl $(srcdir)/docbook/book.xml
+	mv -f manpages/* .
+	rm -rf manpages
+
+INSTALL: html/book.css
+	touch INSTALL
+
+html/book.css: $(wildcard docbook/*.xml)
+	rm -rf html.tmp
+	mkdir html.tmp
+	xsltproc --nonet -o html.tmp/ --xinclude \
+		--param local.l10n.xml 'document("'`pwd`/docbook/l10.xml'")' \
+		$(srcdir)/docbook/docbook.xsl \
+		$(srcdir)/docbook/book.xml
+	-rm -f html/* 2>/dev/null >/dev/null || :
+	mkdir -p html
+	mv html.tmp/* html
+	rm -rf html.tmp
+	links --dump --no-references html/INSTALL.html >INSTALL.tmp
+	mv -f INSTALL.tmp INSTALL
+	$(INSTALL) -m 0644 $(srcdir)/docbook/book.css html
+endif
 
 .PHONY: rpm
 

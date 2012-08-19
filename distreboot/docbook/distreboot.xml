@@ -1,0 +1,259 @@
+<!--
+
+Copyright 2012 Double Precision, Inc.
+See COPYING for distribution information.
+
+-->
+
+<refentry id="distreboot">
+  <info>
+    <author>
+      <firstname>Sam</firstname>
+      <surname>Varshavchik</surname>
+      <contrib>Author</contrib>
+    </author>
+    <productname>Stasher</productname>
+  </info>
+
+  <refmeta>
+    <refentrytitle>distreboot</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class='manual'>Distributed cluster reboot</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>distreboot</refname>
+    <refpurpose>distributed cluster reboot</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+       <command>distreboot</command>
+       <group choice='opt'>
+	 <arg choice='plain'>--start <arg choice='opt'>--node=<replaceable>directory</replaceable></arg></arg>
+	 <arg choice='plain'>--stop</arg>
+	 <arg choice='plain'>--reboot</arg>
+	 <arg choice='plain'>--dry-run</arg>
+	 <arg choice='plain'>--cancel</arg>
+	 <arg choice='plain'>--drop=<replaceable>nodename</replaceable></arg>
+       </group>
+
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para>
+      <command>distreboot</command> gets started on all nodes in an object
+      repository cluster, and coordinates an orderly reboot of the nodes,
+      in the least disruptive manner, so that the object repository cluster
+      remains in quorum throughout the entire reboot process.
+      The distreboot command requires root privileges.
+    </para>
+
+    <refsect2>
+      <title>System startup</title>
+
+      <para>
+	<arg>--start</arg> starts the <command>distreboot</command> daemon.
+	This should be done as part of the system startup, right after the
+	&stasher; daemon server starts.
+      </para>
+
+      <note>
+	<para>
+	  <command>distreboot --start</command> should be started in the
+	  background. <arg>--start</arg> does not fork off a daemon
+	  process.
+	</para>
+      </note>
+
+      <para>
+	The <command>--node</command> option is not needed on most servers that
+	are part of only one object repository cluster, and the object
+	repository cluster is configured in &stasher;'s default object
+	repository cluster directory.
+      </para>
+
+      <para>
+	Use <command>--node</command> to specify an explicit object repository
+	cluster directory on a server that has more than one, or if it's
+	not in the default &stasher; object repository node directory.
+      </para>
+
+      <note>
+	<para>
+	  Running &distreboot; on a server that's a part of multiple object
+	  repository clusters is not recommended. Only one instance of
+	  &distreboot; can run on a server, and &distreboot; can only
+	  make sure that the object repository cluster it's running on will
+	  not have to transfer the cluster's master node more than once
+	  during a distributed reboot.
+	</para>
+      </note>
+    </refsect2>
+
+    <refsect2>
+      <title>System shutdown</title>
+
+      <para>
+	<command>distreboot --stop</command> stops the currently running
+	<command>distreboot</command> daemon. This should be done as part
+	of the system, shutdown script, just before stopping &stasher;
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Current status</title>
+
+      <para>
+	Running &distreboot; with no options shows the daemon's current status:
+	whether it's connected to its object repository node, the status of
+	the node, and the status of other &distreboot; daemons on other nodes
+	in the object repository cluster. Each instance of &distreboot;
+	periodically posts a <quote>heartbeat</quote>, or a keepalive
+	message. With no option, &distreboot; shows a list of all the nodes,
+	and each node's heartbeat expiration.
+      </para>
+
+      <para>
+	If a node's timestamp is in the past, this indicates that &distreboot;
+	is no longer running on that node. This node is down, unreachable,
+	or is in the process of getting rebooted (possibly triggered by
+	something else, other than &distreboot;).
+	Timestamps more than a day old get dropped from the list.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Forcibly ejecting a node from the &distreboot; status</title>
+
+      <para>
+	In the event a node gets removed from the cluster, or gets shut down
+	for a prolonged period of time, and its &distreboot; daemon stops
+	running, its heartbeat status goes stale, but won't get removed from
+	the &distreboot; distributed heartbeat status listing for at least
+	a day.
+      </para>
+
+      <para>
+	This will prevent a distributed reboot from getting triggered.
+	If a distributed reboot is needed before a stale node gets purged
+	from the &distreboot;'s status list, use
+	<arg>--drop</arg> to do it manually.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Rebooting, for real or just kidding</title>
+
+      <para>
+	The <arg>--dry-run</arg> option shows what order the nodes in the
+	object repository will get rebooted, if a reboot gets triggered now.
+	<arg>--reboot</arg> starts the reboot process.
+      </para>
+
+      <para>
+	<arg>--reboot</arg> will trigger a reboot only if the following
+	conditions are met:
+      </para>
+
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    None of the &distreboot; heartbeat timestamps are stale, indicating
+	    that all instances of &distreboot; on all nodes are running.
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    The &stasher; object repository is in quorum.
+	  </para>
+	</listitem>
+      </itemizedlist>
+
+      <para>
+	<arg>--reboot</arg> calculates the order in which the nodes get
+	rebooted so that the current object repository cluster master node gets
+	rebooted last, thus making sure that the object repository cluster
+	master gets transitioned only once, as part of the distributed
+	reboot cycle.
+      </para>
+
+      <para>
+	The distributed reboot starts with the reboot getting initiated on
+	the first node in the list. When the node finishes rebooting,
+	comes back up, joins the cluster, resychronized with cluster, and
+	its instance of the &distreboot; daemon comes back up (since
+	&distreboot; should be a part of each server's startup script, after
+	all), a reboot gets triggered on the next node in the list, and so on,
+	ending with the master node.
+      </para>
+
+      <para>
+	&distreboot; relies on &stasher;'s shutdown script to take care of
+	transition the master node. &stasher;'s default shutdown script checks
+	if the server is the current master node; if so it tries to execute
+	an orderly transition of the master node to another node in the
+	cluster.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Cancelling a distributed reboot in progress</title>
+
+      <para>
+	If something goes wrong, and a node fails to reboot, use
+	<arg>--cancel</arg> to cancel the reboot list. Otherwise, when
+	everything gets patched up, with the ailing server, and it finally
+	boots back up, you'll be surprised when another object repository node,
+	which was originally next in the reboot list, starts rebooting itself.
+      </para>
+
+      <para>
+	Hopefully, this will happen within 24 hours, otherwise its heartbeat
+	status disappears, and the distributed reboot will resume right where
+	it left off, 24 hours ago!
+      </para>
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <title>PROPERTIES</title>
+
+    <variablelist>
+      <varlistentry>
+	<term><command>rebootcmd</command></term>
+
+	<listitem>
+	  <para>
+	    The command that &distreboot; runs in order to reboot the
+	    server, this is <quote>reboot</quote> by default.
+	  </para>
+
+	  <para>
+	    Use <quote>--set-property rebootcmd=<replaceable>command</replaceable></quote>
+	    with <arg>--start</arg>
+	    to execute a custom command, or set it in
+	    <filename>distreboot.properties</filename>
+	    (installed in <filename>/usr/local/etc</filename> or
+	    <filename>/etc</filename>.
+	  </para>
+
+	  <para>
+	    &distreboot; forks and execs the given command, as is, in order
+	    to trigger the server's reboot.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+</refentry>
+<!--
+Local Variables:
+mode: sgml
+sgml-parent-document: ("book.xml" "reference" "refentry")
+End:
+-->

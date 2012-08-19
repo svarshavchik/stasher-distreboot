@@ -77,7 +77,7 @@ fi
 %config %{_localstatedir}/stasher/apps/*
 %{_sbindir}/*
 %{_unitdir}/*
-
+%{_mandir}/*/*
 %{_localstatedir}/lib/rpm-state/*
 
 %changelog

@@ -1,0 +1,91 @@
+<!--
+
+Copyright 2012 Double Precision, Inc.
+See COPYING for distribution information.
+
+-->
+
+<chapter id="INSTALL">
+  <title>Installation</title>
+
+  <para>
+    The &stasher; and &libx;
+    development toolkits must be installed before building
+    &distreboot;.
+    On Fedora, executing
+    <quote>rpmbuild -ta stasher-distreboot-<replaceable>version</replaceable>.tar.bz2</quote>
+    produces an <acronym>RPM</acronym> package.
+    &distreboot; gets installed on all nodes in a &stasher; cluster.
+    Install this package on
+    every node in the &stasher; cluster, and execute
+    <command>systemctl enable stasher-distreboot.service</command> and
+    <command>systemctl start stasher-distreboot.service</command>.
+    On other systems, use the following instructions as a guide to preparing
+    an installable package.
+  </para>
+
+  <orderedlist>
+    <listitem>
+      <para>
+	Unpack the tarball, run the <command>configure</command> script,
+	that takes the usual <application>autoconf</application> options,
+	followed by <command>make</command> or <command>gmake</command>.
+      </para>
+
+      <note>
+	<para>
+	  The same <command>configure</command> options, specifically the
+	  installation directories, that were used to build &stasher; are
+	  required. Otherwise &distreboot; will not get installed properly.
+	</para>
+      </note>
+    </listitem>
+
+    <listitem>
+      <para>
+	Execute <command>make install DESTDIR=/tmp/instimage</command>.
+	This creates an installation image in
+	<filename>/tmp/instimage</filename> (or some other directory of your
+	choosing). Use this installation image to create an installable
+	package for your platform.
+      </para>
+    </listitem>
+
+    <listitem>
+      <para>
+	&distreboot;'s application properties must be configured by the
+	installation script. The default configuration installs
+	&distreboot; in <filename>/usr/local/sbin</filename>, and the property
+	file in <filename>/usr/local/etc</filename>. The installation script
+	should then execute the following, as part of &distreboot; package
+	instllation:
+      </para>
+
+      <blockquote>
+	<informalexample>
+	  <programlisting>
+properties --set /usr/local/etc/distreboot.properties /usr/local/sbin/distreboot</programlisting>
+	</informalexample>
+      </blockquote>
+
+      <para>
+	Adjust the directories according to any non-default options to the
+	<command>configure</command> script.
+	Alternatively, if your platform's installable package format preserves
+	extended file attributes, this can be executed as part of the package
+	build script, and have include the <command>distreboot</command>
+	binary, with the extended attribute that points to the property file,
+	in the installable package.
+	See
+	<citerefentry><refentrytitle>properties</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+	for more information.
+      </para>
+    </listitem>
+  </orderedlist>
+</chapter>
+<!--
+Local Variables:
+mode: sgml
+sgml-parent-document: ("book.xml" "book" "chapter")
+End:
+-->

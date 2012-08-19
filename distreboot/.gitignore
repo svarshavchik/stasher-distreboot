@@ -1,4 +1,5 @@
 .deps
+/INSTALL
 Makefile
 Makefile.in
 aclocal.m4
@@ -13,6 +14,7 @@ distreboot_config.h
 distreboot_config.h.in
 distreboot.msgs.all.H
 distreboot.opts.H
+/html
 install-sh
 missing
 rpm
@@ -24,3 +26,4 @@ tst.opts.H
 *.tst
 *.gz
 *.bz2
+*.8

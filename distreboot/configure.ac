@@ -21,6 +21,7 @@ REBOOTCMD='"'"$REBOOTCMD"'"'
 
 AC_DEFINE_UNQUOTED(REBOOTCMD,$REBOOTCMD,[Command that gets executed to trigger a reboot])
 
+AM_CONDITIONAL(HAVE_DOCBOOK,[test -d ${srcdir}/docbook])
 AC_CONFIG_FILES(Makefile
 	packaging/fedora/stasher-distreboot.spec
 	packaging/fedora/stasher-distreboot.service)
