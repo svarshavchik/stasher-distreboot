@@ -56,6 +56,36 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+	if (opts.daemon->value)
+	{
+		auto pipe=x::fd::base::pipe();
+
+		pid_t p=fork();
+
+		if (p < 0)
+		{
+			std::cerr << "Fork failed" << std::endl;
+			exit(1);
+		}
+
+		if (p)
+		{
+			// Pipe needed for the parent to wait until the child
+			// process executes setsid(). This makes sure that
+			// the child process is running in a new session before
+			// the parent exit. It's one syscall, hey, but it's
+			// a bone-fide race condition.
+
+			char dummy;
+
+			pipe.second->close();
+			pipe.first->read(&dummy, 1);
+			exit(0);
+		}
+		setsid();
+		// Child closes both pipe file descriptors
+	}
+
 	distreboot::base::args args=distreboot::base::args::create(opts);
 
 	auto ret=x::singletonapp

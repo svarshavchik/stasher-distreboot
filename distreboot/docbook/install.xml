@@ -8,6 +8,43 @@ See COPYING for distribution information.
 <chapter id="INSTALL">
   <title>Installation</title>
 
+  <informaltable id="externallinks">
+    <thead cols="1">
+      <tr>
+	<th>
+	  <simpara>Links</simpara>
+	</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+	<td>
+	  <simpara>
+	    <ulink url="https://fedorahosted.org/released/libcxx/">Download</ulink>
+	  </simpara>
+
+	  <simpara>
+	    <ulink url="https://lists.fedorahosted.org/mailman/listinfo/libcxx-stasher-users">Mailing list</ulink>
+	    </simpara>
+
+	  <simpara>
+	    <ulink url="http://git.fedorahosted.org/git/libcxx.git">fedorahosted</ulink> or
+	    <ulink url="https://github.com/svarshavchik/libcxx.git">GitHUB</ulink>
+	    <acronym>GIT</acronym>
+	  </simpara>
+	  <simpara>
+	    (<quote>libcxx/stasher-distreboot</quote> branch).
+	  </simpara>
+
+	  <simpara>
+	    <ulink url="http://www.courier-mta.org/KEYS.bin">PGP key</ulink>
+	  </simpara>
+	</td>
+      </tr>
+    </tbody>
+  </informaltable>
+
   <para>
     The &stasher; and &libx;
     development toolkits must be installed before building
@@ -15,13 +52,24 @@ See COPYING for distribution information.
     On Fedora, executing
     <quote>rpmbuild -ta stasher-distreboot-<replaceable>version</replaceable>.tar.bz2</quote>
     produces an <acronym>RPM</acronym> package.
-    &distreboot; gets installed on all nodes in a &stasher; cluster.
-    Install this package on
-    every node in the &stasher; cluster, and execute
+    Execute
     <command>systemctl enable stasher-distreboot.service</command> and
     <command>systemctl start stasher-distreboot.service</command>.
-    On other systems, use the following instructions as a guide to preparing
-    an installable package.
+    If the server has more than one object repository node directory
+    (and multiple instances of the &stasher; server), &distreboot;
+    needs to know which one to use. Edit
+    <filename>stasher-distreboot.service</filename>, or install an override
+    in <filename>/etc/systemd</filename>, and add the
+    <quote>--node <replaceable>directory</replaceable></quote> parameter
+    after <quote>--start</quote>.
+  </para>
+
+  <para>
+    &distreboot; gets installed on all nodes in a &stasher; cluster.
+    Install the RPM package on every node in the &stasher; cluster.
+    On other Linux distributions,
+    use the following instructions as a guide to preparing
+    a similar installable package.
   </para>
 
   <orderedlist>
@@ -82,6 +130,65 @@ properties --set /usr/local/etc/distreboot.properties /usr/local/sbin/distreboot
       </para>
     </listitem>
   </orderedlist>
+
+  <section id="freebsdport">
+    <title>Porting and compatibility notes</title>
+
+    <para>
+      &distreboot; depends on &stasher;, of course, and &libx;, which
+      currently builds only on Linux, with an exception that it also builds on
+      &freebsdver;. There's a <filename>Makefile</filename> in the
+      &distreboot; that you can use to try to build &distreboot;
+      on &freebsdver;.
+    </para>
+
+    <itemizedlist>
+      <listitem>
+	<para>
+	  The &stasher; package must already be installed (with &libx;).
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Copy the &distreboot; tarball to
+	  <filename>/usr/ports/distfiles</filename>.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Extract the tarball's contents into a temporary directory, then from
+	  the &freebsdverdir; subdirectory run
+	  <command>make makesum</command> followed by
+	  <command>make install</command> (or
+	  <command>make package</command>).
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Add <quote>distreboot_enable=YES</quote> to
+	  <filename>/etc/rc.conf</filename>.
+	  This starts &distreboot; when the server boots.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  If the server has more than one object repository node directory
+	  (and multiple instances of the &stasher; server), &distreboot;
+	  needs to know which one to use.
+	  Put <quote>--node <replaceable>directory</replaceable></quote>
+	  in <filename>&freebsdprefix;/etc/distrebootrc</filename>.
+	  If <filename>&freebsdprefix;/etc/distrebootrc</filename> exists,
+	  <filename>&freebsdprefix;/etc/rc.d/distreboot</filename> sets its
+	  contents as additional parameters to
+	  &distreboot;.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </section>
 </chapter>
 <!--
 Local Variables:

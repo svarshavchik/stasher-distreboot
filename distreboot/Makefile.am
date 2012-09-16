@@ -54,7 +54,7 @@ uninstall-hook:
 .PHONY: docs
 
 if HAVE_DOCBOOK
-docs: html/book.css
+docs: html/book.css html/.htaccess
 
 distreboot.8: docbook/distreboot.xml
 	rm -rf manpages
@@ -65,6 +65,11 @@ distreboot.8: docbook/distreboot.xml
 
 INSTALL: html/book.css
 	touch INSTALL
+
+html/.htaccess: docbook/.htaccess html/book.css
+	mkdir -p html
+	$(INSTALL) -m 0644 $(srcdir)/docbook/.htaccess html/.htaccess
+	touch html/.htaccess
 
 html/book.css: $(wildcard docbook/*.xml)
 	rm -rf html.tmp
@@ -77,7 +82,7 @@ html/book.css: $(wildcard docbook/*.xml)
 	mkdir -p html
 	mv html.tmp/* html
 	rm -rf html.tmp
-	links --dump --no-references html/INSTALL.html >INSTALL.tmp
+	links --dump html/INSTALL.html >INSTALL.tmp
 	mv -f INSTALL.tmp INSTALL
 	$(INSTALL) -m 0644 $(srcdir)/docbook/book.css html
 endif
@@ -102,3 +107,13 @@ rpm:
 		--define '__spec_prep_pre %{___build_pre}' \
 		--define "extrarelease .`date '+%Y%m%d%H%M%S'`" @PACKAGE@-@VERSION@.tar.bz2
 	sh $$HOME/repos.sh
+
+www: html
+	rsync -a --delete-after html/. ~/www/www.courier-mta.org/stasher-distreboot/.
+
+tag:
+	git tag -s -a @PACKAGE@/@VERSION@/`date +%Y%m%d%H%M%S` -m 'Tag version @VERSION@'
+
+scp:
+	rm -f @PACKAGE@-@VERSION@.tar.bz2.sig; gpg --detach-sign --default-key mrsam@courier-mta.com @PACKAGE@-@VERSION@.tar.bz2; test -f @PACKAGE@-@VERSION@.tar.bz2.sig || exit 1
+	scp @PACKAGE@-@VERSION@.tar.bz2 @PACKAGE@-@VERSION@.tar.bz2.sig fedorahosted.org:libcxx

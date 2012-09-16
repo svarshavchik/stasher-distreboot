@@ -16,9 +16,17 @@ See COPYING for distribution information.
 
     <group>
       <option>
+	<name>daemon</name>
+	<type>bool</type>
+	<default>false</default>
+	<longopt>daemon</longopt>
+	<descr>Fork and run the daemon in the background</descr>
+      </option>
+
+      <option>
 	<name>node</name>
 	<type>std::string</type>
-	<descr>The distribued object repository node to connect to</descr>
+	<descr>The distributed object repository node to connect to</descr>
 	<argdescr>directory</argdescr>
 	<longopt>repo</longopt>
 	<hasvalue />
