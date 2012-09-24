@@ -11,7 +11,11 @@ $(call OPTIONS_GEN,tst.opts.H,tst.opts.xml)
 EXTRA_DIST=COPYING COPYING.GPL INSTALL distreboot.8\
 	packaging/fedora/stasher-distreboot.spec \
 	packaging/fedora/stasher-distreboot.spec.in \
-        packaging/fedora/stasher-distreboot.service.in
+        packaging/fedora/stasher-distreboot.service.in \
+	packaging/freebsd9/databases/stasher-distreboot/Makefile \
+	packaging/freebsd9/databases/stasher-distreboot/pkg-descr \
+	packaging/freebsd9/databases/stasher-distreboot/pkg-plist \
+	packaging/freebsd9/databases/stasher-distreboot/files/distreboot.in
 
 noinst_LIBRARIES=libdistreboot.a
 libdistreboot_a_SOURCES=distreboot.C distreboot.H
