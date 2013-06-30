@@ -213,4 +213,6 @@ public:
 	typedef distrebootObj::ret ret;
 };
 
+extern x::property::value<std::string> reboot_cmd;
+
 #endif

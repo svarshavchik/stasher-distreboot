@@ -5,14 +5,11 @@
 
 #include "distreboot_config.h"
 #include <x/options.H>
-#include <x/property_value.H>
 #include <x/globlock.H>
 #include <x/forkexec.H>
 #include <x/sysexception.H>
 #include "distreboot.H"
 #include "distreboot.opts.H"
-
-x::property::value<std::string> reboot_cmd(L"rebootcmd", REBOOTCMD);
 
 class rebootimplObj : public distrebootObj {
 
@@ -40,7 +37,6 @@ void rebootimplObj::do_reboot()
 	{
 		LOG_FATAL(cmd << ": " << e);
 	}
-	_exit(1);
 }
 
 int main(int argc, char **argv)

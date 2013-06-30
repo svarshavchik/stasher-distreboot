@@ -13,4 +13,5 @@ WantedBy=multi-user.target
 Type=simple
 ExecStart=@sbindir@/distreboot --start
 ExecStop=@sbindir@/distreboot --stop
+KillMode=process
 

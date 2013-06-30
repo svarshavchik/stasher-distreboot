@@ -1,3 +1,8 @@
+/*
+** Copyright 2012 Double Precision, Inc.
+** See COPYING for distribution information.
+*/
+
 #include "distreboot_config.h"
 
 #include <x/fditer.H>
@@ -17,6 +22,8 @@
 #include "distreboot.opts.H"
 
 LOG_CLASS_INIT(distrebootObj);
+
+x::property::value<std::string> reboot_cmd(L"rebootcmd", REBOOTCMD);
 
 distrebootObj::argsObj::argsObj(const distreboot_options &opts)
 	: start(opts.start->value),
@@ -126,7 +133,8 @@ distrebootObj::~distrebootObj() noexcept{
 distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 {
 	if (!args->start)
-		return ret::create("The daemon is not running", 1);
+		return ret::create("The daemon is not running",
+				   args->stop ? 0:1);
 
 	x::destroyCallbackFlag::base::guard guard;
 
@@ -392,6 +400,7 @@ void distrebootObj::dispatch(const instance_msg &msg)
 		o << "Quorum status: " << x::tostring(connection_state)
 		  << std::endl;
 	}
+	o << "Reboot command: " << reboot_cmd.getValue() << std::endl;
 
 	if (heartbeatp)
 	{

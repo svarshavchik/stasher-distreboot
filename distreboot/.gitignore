@@ -26,4 +26,5 @@ tst.opts.H
 *.tst
 *.gz
 *.bz2
+*.sig
 *.8
