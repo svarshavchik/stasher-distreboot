@@ -4,7 +4,7 @@
 # $FreeBSD$
 
 PORTNAME=		stasher-distreboot
-PORTVERSION=		0.01
+PORTVERSION=		0.02
 CATEGORIES=		databases
 
 MAINTAINER=		mrsam@courier-mta.com
