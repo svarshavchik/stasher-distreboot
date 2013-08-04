@@ -11,7 +11,7 @@ LIBCXX_INIT
 
 AC_PROG_CXX
 AC_PROG_CC
-AC_PROG_RANLIB
+AC_PROG_LIBTOOL
 
 AC_ARG_WITH(rebootcmd,[AS_HELP_STRING([--with-rebootcmd=cmd],[Command that gets executed to begin a reboot (default: reboot)])],
     [REBOOTCMD="$withval"],

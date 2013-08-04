@@ -6,7 +6,9 @@ aclocal.m4
 autom4te.cache
 config.cache
 config.log
+config.guess
 config.status
+config.sub
 configure
 depcomp
 distreboot
@@ -16,6 +18,8 @@ distreboot.msgs.all.H
 distreboot.opts.H
 /html
 install-sh
+libtool
+ltmain.sh
 missing
 rpm
 stamp-h1
