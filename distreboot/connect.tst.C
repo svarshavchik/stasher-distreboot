@@ -166,7 +166,7 @@ static void test1(test_options &opts)
 	nodes.instances[0].wait();
 
 	std::cout << "Waiting for its timestamp to be purged out" << std::endl;
-	x::property::load_property(L"stale", L"2", true, true);
+	x::property::load_property("stale", "2", true, true);
 
 	lock.wait([&lock, &first_heartbeat]
 		  {
@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 
 	opts.parse(argc, argv);
 
-	x::property::load_property(L"heartbeat", L"2", true, true);
+	x::property::load_property("heartbeat", "2", true, true);
 	test1(opts);
 	return 0;
 }

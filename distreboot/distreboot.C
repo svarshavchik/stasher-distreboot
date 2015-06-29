@@ -23,7 +23,7 @@
 
 LOG_CLASS_INIT(distrebootObj);
 
-x::property::value<std::string> reboot_cmd(L"rebootcmd", REBOOTCMD);
+x::property::value<std::string> reboot_cmd("rebootcmd", REBOOTCMD);
 
 distrebootObj::argsObj::argsObj(const distreboot_options &opts)
 	: start(opts.start->value),
@@ -446,9 +446,9 @@ void distrebootObj::dispatch(const serverinfo_msg &msg)
 
 	auto h=stasher::heartbeat<std::string, void>::create
 		( *managerp, *client, heartbeat_object,
-		  nodename, L"heartbeat",
+		  nodename, "heartbeat",
 		  std::chrono::minutes(10),
-		  L"stale",
+		  "stale",
 		  std::chrono::hours(24),
 		  [me]
 		  (stasher::heartbeat<std::string, void>

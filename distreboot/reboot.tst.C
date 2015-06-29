@@ -28,7 +28,7 @@ public:
 	bool fakemajority;
 
 	x::mpcobj<bool> ready;
-	
+
 	test1distrebootObj() : fakefull(true), fakemajority(true), ready(false)
 	{
 	}
@@ -290,7 +290,7 @@ static void test2(test_options &opts)
 			  });
 	}
 }
-			
+
 static void test3(test_options &opts)
 {
 	stasher::client client=
@@ -381,7 +381,7 @@ int main(int argc, char **argv)
 
 	opts.parse(argc, argv);
 
-	x::property::load_property(L"heartbeat", L"2", true, true);
+	x::property::load_property("heartbeat", "2", true, true);
 	std::cout << "test1" << std::endl;
 	test1(opts);
 	std::cout << "test2" << std::endl;
