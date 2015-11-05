@@ -2,7 +2,7 @@
 # See COPYING for distribution information.
 
 AC_PREREQ([2.66])
-AC_INIT(stasher-distreboot, 0.04, [mrsam@courier-mta.com])
+AC_INIT(stasher-distreboot, 0.05, [mrsam@courier-mta.com])
 AM_INIT_AUTOMAKE(dist-bzip2 foreign)
 AC_CONFIG_SRCDIR([distreboot.C])
 AC_CONFIG_HEADERS([distreboot_config.h])
