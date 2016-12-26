@@ -15,7 +15,7 @@ depcomp
 distreboot
 distreboot_config.h
 distreboot_config.h.in
-distreboot.msgs.all.H
+distreboot.msgs.H
 distreboot.opts.H
 /html
 install-sh

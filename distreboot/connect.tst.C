@@ -39,9 +39,10 @@ public:
 	test1distrebootObj() {}
 	~test1distrebootObj() noexcept {}
 
-	void dispatch(const serverstate_msg &msg)
+	void do_dispatch_serverstate(const stasher::clusterstate &state)
+		override
 	{
-		distrebootObj::dispatch(msg);
+		distrebootObj::do_dispatch_serverstate(state);
 
 		meta_container_t::lock lock(container);
 
@@ -49,9 +50,10 @@ public:
 		lock.notify_all();
 	}
 
-	void dispatch(const serverinfo_msg &msg)
+	void do_dispatch_serverinfo(const stasher::userhelo &serverinfo)
+		override
 	{
-		distrebootObj::dispatch(msg);
+		distrebootObj::do_dispatch_serverinfo(serverinfo);
 
 		meta_container_t::lock lock(container);
 

@@ -130,8 +130,13 @@ distrebootObj::~distrebootObj() noexcept{
 // Execution thread. The first singleton instance must have the
 // --start parameter
 
-distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
+distrebootObj::ret
+distrebootObj::run(x::ptr<x::obj> &threadmsgdispatcher_mcguffin,
+		   uid_t uid, argsptr &args)
 {
+	msgqueue_auto msgqueue(this);
+	threadmsgdispatcher_mcguffin=nullptr;
+
 	if (!args->start)
 		return ret::create("The daemon is not running",
 				   args->stop ? 0:1);
@@ -242,7 +247,7 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 
 	try {
 		while (1)
-			msgqueue->pop()->dispatch();
+			msgqueue.event();
 	} catch (const x::stopexception &e)
 	{
 	}
@@ -254,31 +259,35 @@ distrebootObj::ret distrebootObj::run(uid_t uid, argsptr &args)
 }
 
 // Another singleton instance has been started.
-void distrebootObj::dispatch(const instance_msg &msg)
+void distrebootObj::dispatch_instance(uid_t uid,
+				      const args &command,
+				      const ret &retArg,
+				      const x::singletonapp::processed &flag,
+				      const x::ref<x::obj> &mcguffin)
 {
-	msg.flag->processed();
+	flag->processed();
 
-	if (msg.command->start)
+	if (command->start)
 	{
-		msg.retArg->exitcode=1;
-		msg.retArg->message="The daemon is already running";
+		retArg->exitcode=1;
+		retArg->message="The daemon is already running";
 		return;
 	}
 
-	if (msg.command->stop)
+	if (command->stop)
 	{
 		stop();
 		return;
 	}
 
-	if (msg.command->dry_run || msg.command->reboot)
+	if (command->dry_run || command->reboot)
 	{
 		auto result=create_rebootlist();
 
 		if (result.first.null())
 		{
-			msg.retArg->message=result.second;
-			msg.retArg->exitcode=1;
+			retArg->message=result.second;
+			retArg->exitcode=1;
 			return;
 		}
 
@@ -291,9 +300,9 @@ void distrebootObj::dispatch(const instance_msg &msg)
 			o << "   " << node << std::endl;
 		}
 
-		msg.retArg->message=o.str();
+		retArg->message=o.str();
 
-		if (msg.command->dry_run)
+		if (command->dry_run)
 			return;
 
 		// Put the new rebootlist object into the repository. Whoever's
@@ -308,27 +317,27 @@ void distrebootObj::dispatch(const instance_msg &msg)
 		// completes.
 
 		stasher::process_request((*client)->put_request(tran),
-					 [msg]
+					 [retArg, flag, mcguffin]
 					 (const stasher::putresults &res)
 					 {
 						 if (res->status == stasher::
 						     req_processed_stat)
 							 return;
-						 msg.retArg->message=
+						 retArg->message=
 							 x::tostring(res->
 								     status)
 							 + "\n";
-						 msg.retArg->exitcode=1;
+						 retArg->exitcode=1;
 					 });
 		return;
 	}
 
-	if (msg.command->cancel)
+	if (command->cancel)
 	{
 		if (!rebootlist_received)
 		{
-			msg.retArg->message="Not yet initialized";
-			msg.retArg->exitcode=1;
+			retArg->message="Not yet initialized";
+			retArg->exitcode=1;
 			return;
 		}
 
@@ -340,8 +349,8 @@ void distrebootObj::dispatch(const instance_msg &msg)
 
 			if (lock->value.null())
 			{
-				msg.retArg->message="No reboot in progress";
-				msg.retArg->exitcode=1;
+				retArg->message="No reboot in progress";
+				retArg->exitcode=1;
 				return;
 			}
 
@@ -349,35 +358,35 @@ void distrebootObj::dispatch(const instance_msg &msg)
 		}
 
 		stasher::process_request((*client)->put_request(tran),
-					 [msg]
+					 [retArg, flag, mcguffin]
 					 (const stasher::putresults &res)
 					 {
-						 msg.retArg->message=
+						 retArg->message=
 							 x::tostring(res->
 								     status)
 							 + "\n";
 						 if (res->status != stasher::
 						     req_processed_stat)
-							 msg.retArg->exitcode=1;
+							 retArg->exitcode=1;
 					 });
 		return;
 	}
 
-	if (msg.command->drop.size() > 0)
+	if (command->drop.size() > 0)
 	{
 		if (!heartbeatp)
 		{
-			msg.retArg->message="Waiting for connection with server";
-			msg.retArg->exitcode=1;
+			retArg->message="Waiting for connection with server";
+			retArg->exitcode=1;
 			return;
 		}
 
-		heartbeatp->admin_drop(msg.command->drop,
-				       [msg]
+		heartbeatp->admin_drop(command->drop,
+				       [retArg, flagsave=flag, mcguffin]
 				       (bool flag, const std::string &status)
 				       {
-					       msg.retArg->message=status;
-					       msg.retArg->exitcode=flag ? 0:1;
+					       retArg->message=status;
+					       retArg->exitcode=flag ? 0:1;
 				       });
 		return;
 	}
@@ -412,23 +421,33 @@ void distrebootObj::dispatch(const instance_msg &msg)
 		  << std::endl;
 	}
 
-	msg.retArg->message=o.str();
+	retArg->message=o.str();
 }
 
-void distrebootObj::dispatch(const connection_update_msg &msg)
+void distrebootObj::dispatch_connection_update(stasher::req_stat_t status)
 {
-	connection_status=msg.status;
+	connection_status=status;
 }
 
-void distrebootObj::dispatch(const serverstate_msg &msg)
+void distrebootObj::dispatch_serverstate(const stasher::clusterstate &state)
 {
-	connection_state=msg.state;
+	do_dispatch_serverstate(state);
+}
+
+void distrebootObj::do_dispatch_serverstate(const stasher::clusterstate &state)
+{
+	connection_state=state;
 	connection_state_received=true;
 }
 
-void distrebootObj::dispatch(const serverinfo_msg &msg)
+void distrebootObj::dispatch_serverinfo(const stasher::userhelo &serverinfo)
 {
-	connection_info=msg.serverinfo;
+	do_dispatch_serverinfo(serverinfo);
+}
+
+void distrebootObj::do_dispatch_serverinfo(const stasher::userhelo &serverinfo)
+{
+	connection_info=serverinfo;
 	connection_info_received=true;
 
 	if (nodename.size() == 0)
@@ -462,14 +481,16 @@ void distrebootObj::dispatch(const serverinfo_msg &msg)
 	heartbeatp=&*h;
 }
 
-void distrebootObj::dispatch(const update_heartbeat_request_msg &msg)
+void distrebootObj
+::dispatch_update_heartbeat_request(stasher::heartbeat<std::string, void>::base
+				    ::update_type_t update_type)
 {
 	heartbeat_received=true;
 
 	if (heartbeatp) // Should always be the case
 	{
 		LOG_DEBUG("Updating my heartbeat");
-		heartbeatp->update(msg.update_type);
+		heartbeatp->update(update_type);
 	}
 
 	do_process_rebootlist();
@@ -477,7 +498,7 @@ void distrebootObj::dispatch(const update_heartbeat_request_msg &msg)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void distrebootObj::dispatch(const rebootlist_updated_msg &msg)
+void distrebootObj::dispatch_rebootlist_updated()
 {
 	rebootlist_received=true;
 	do_process_rebootlist();
@@ -529,7 +550,7 @@ void distrebootObj::do_process_rebootlist()
 // If so, we must've just rebooted, so take ourselves off the
 // list.
 
-void distrebootObj::dispatch(const again_just_rebooted_msg &msg)
+void distrebootObj::dispatch_again_just_rebooted()
 {
 	do_just_rebooted();
 }

@@ -26,6 +26,7 @@ public:
 	distreboot inst;
 
 	typedef decltype(x::run(distreboot::create(),
+				std::declval<x::ptr<x::obj> &>(),
 				getuid(),
 				distreboot::base::argsptr::create())
 			 ) thread_ret_t;

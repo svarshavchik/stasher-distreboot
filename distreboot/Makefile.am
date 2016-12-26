@@ -4,7 +4,8 @@ AUTOMAKE_OPTIONS=foreign dist-bzip2 -Wno-portability
 
 man8_MANS=distreboot.8
 
-$(call MSGDISPATCHER_GEN,distreboot.msgs,all,dispatch=protected messages=protected)
+$(call THREADMSGDISPATCHER_GEN,distreboot.msgs.H,distreboot.msgs.xml)
+
 $(call OPTIONS_GEN,distreboot.opts.H,distreboot.opts.xml)
 $(call OPTIONS_GEN,tst.opts.H,tst.opts.xml)
 

@@ -35,16 +35,17 @@ public:
 
 	~test1distrebootObj() noexcept {}
 
-	void dispatch(const serverstate_msg &msg) override
+	void do_dispatch_serverstate(const stasher::clusterstate &state)
+		override
 	{
-		serverstate_msg cpy=msg;
+		auto cpy=state;
 
-		cpy.state.master=fakemaster;
-		cpy.state.nodes=fakenodes;
-		cpy.state.full=fakefull;
-		cpy.state.majority=fakemajority;
+		cpy.master=fakemaster;
+		cpy.nodes=fakenodes;
+		cpy.full=fakefull;
+		cpy.majority=fakemajority;
 
-		distrebootObj::dispatch(cpy);
+		distrebootObj::do_dispatch_serverstate(cpy);
 	}
 
 	void do_just_rebooted() override

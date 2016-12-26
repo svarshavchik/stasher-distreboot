@@ -9,7 +9,7 @@
 #include <x/ref.H>
 #include <x/ptr.H>
 #include <x/fd.H>
-#include <x/eventqueuemsgdispatcher.H>
+#include <x/threadmsgdispatcher.H>
 #include <x/managedsingletonapp.H>
 #include <x/logger.H>
 #include <x/property_value.H>
@@ -29,7 +29,7 @@ typedef x::ptr<distrebootObj, distrebootBase> distrebootptr;
 
 // The main class. It's an application singleton.
 
-class distrebootObj : public x::eventqueuemsgdispatcherObj {
+class distrebootObj : public x::threadmsgdispatcherObj {
 
 protected:
 	LOG_CLASS_SCOPE;
@@ -140,7 +140,7 @@ public:
 			    reboot(false), cancel(false), dry_run(false) {}
 		argsObj(const distreboot_options &opts);
 
-		~argsObj() noexcept 
+		~argsObj() noexcept
 		{
 		}
 
@@ -189,15 +189,25 @@ public:
 	~distrebootObj() noexcept;
 
 	// The singleton thread.
-	ret run(uid_t uid, argsptr &args);
+	ret run(x::ptr<x::obj> &threadmsgdispatcher_mcguffin,
+		uid_t uid, argsptr &args);
 
 	// Do the actual reboot of this node
 	// Punt it to a subclass. The default implementation just stop()s.
 
 	virtual void do_reboot();
 
-#include "distreboot.msgs.all.H"
+#include "distreboot.msgs.H"
 
+protected:
+
+	//! Process a serverstate() message.
+
+	virtual void do_dispatch_serverstate(const stasher::clusterstate &state);
+
+	//! Process a serverinfo() message.
+
+	virtual void do_dispatch_serverinfo(const stasher::userhelo &serverinfo);
 };
 
 // distreboot::base provides some convenience typedefs.

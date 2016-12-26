@@ -5,7 +5,7 @@ See COPYING for distribution information.
 
 -->
 
-<class name="distreboot">
+<class name="distrebootObj">
   <method name="instance">
     <comment>
       //! A command from another invocation sent to the singleton instance.
@@ -16,34 +16,34 @@ See COPYING for distribution information.
 	//! The other invocation's uid
       </comment>
 
-      <decl>uid_t <name>uid</name></decl>
+      <decl>uid_t uid</decl>
     </param>
 
-    <param type="class">
+    <param>
       <comment>
 	//! The invocation's arguments.
       </comment>
 
-      <decl>args <name>command</name></decl>
+      <decl>const args &amp;command</decl>
     </param>
 
-    <param type="class">
+    <param>
       <comment>
 	//! The return value to the original invocation
       </comment>
 
-      <decl>ret <name>retArg</name></decl>
+      <decl>const ret &amp;retArg</decl>
     </param>
 
-    <param type="class">
+    <param>
       <comment>
 	//! Invoke flag->processed() to indicate that the request was processed
       </comment>
 
-      <decl>x::singletonapp::processed <name>flag</name></decl>
+      <decl>const x::singletonapp::processed &amp;flag</decl>
     </param>
 
-    <param type="class">
+    <param>
       <comment>
 	//! Request mcguffin
 
@@ -51,7 +51,7 @@ See COPYING for distribution information.
 	//! "ret" and "flag" gets sent back to the original invocation.
       </comment>
 
-      <decl>x::ref&lt;x::obj&gt; <name>mcguffin</name></decl>
+      <decl>const x::ref&lt;x::obj&gt; &amp;mcguffin</decl>
     </param>
   </method>
 
@@ -63,23 +63,23 @@ See COPYING for distribution information.
 	//! Current status of the connection with the server
       </comment>
 
-      <decl>stasher::req_stat_t <name>status</name></decl>
+      <decl>stasher::req_stat_t status</decl>
     </param>
   </method>
 
-  <method name="serverstate" virtual="1">
+  <method name="serverstate">
     <comment>//! Managed server status callback update</comment>
 
-    <param type="class">
+    <param>
       <comment>
 	//! Current status of the connection with the server
       </comment>
 
-      <decl>stasher::clusterstate <name>state</name></decl>
+      <decl>const stasher::clusterstate &amp;state</decl>
     </param>
   </method>
 
-  <method name="serverinfo" virtual="1">
+  <method name="serverinfo">
     <comment>//! Managed server status callback</comment>
 
     <param type="class">
@@ -87,7 +87,7 @@ See COPYING for distribution information.
 	//! Server connection nifo
       </comment>
 
-      <decl>stasher::userhelo <name>serverinfo</name></decl>
+      <decl>const stasher::userhelo &amp;serverinfo</decl>
     </param>
   </method>
 
@@ -98,7 +98,7 @@ See COPYING for distribution information.
       <comment>//! Heartbeat update type</comment>
 
       <decl>stasher::heartbeat&lt;std::string, void&gt;::base::update_type_t
-      <name>update_type</name></decl>
+      update_type</decl>
     </param>
   </method>
 
