@@ -8,7 +8,6 @@
 #include <x/mpobj.H>
 #include <x/ymdhms.H>
 #include <x/property_properties.H>
-#include <x/destroycallbackflag.H>
 #include "tst.H"
 #include "distreboot.H"
 

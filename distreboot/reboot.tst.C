@@ -8,7 +8,7 @@
 #include <x/mpobj.H>
 #include <x/ymdhms.H>
 #include <x/property_properties.H>
-#include <x/destroycallbackflag.H>
+#include <x/destroy_callback.H>
 #include "tst.H"
 #include "distreboot.H"
 
@@ -152,7 +152,7 @@ static distrebootObj::ret send_cmd(const distreboot &instance,
 	auto ret=distrebootObj::ret::create();
 
 	{
-		x::destroyCallbackFlag::base::guard guard;
+		x::destroy_callback::base::guard guard;
 
 		x::ref<x::obj> mcguffin=x::ref<x::obj>::create();
 

@@ -141,7 +141,7 @@ distrebootObj::run(x::ptr<x::obj> &threadmsgdispatcher_mcguffin,
 		return ret::create("The daemon is not running",
 				   args->stop ? 0:1);
 
-	x::destroyCallbackFlag::base::guard guard;
+	x::destroy_callback::base::guard guard;
 
 	nodename=args->forcenodename;
 
@@ -201,7 +201,7 @@ distrebootObj::run(x::ptr<x::obj> &threadmsgdispatcher_mcguffin,
 	// the last reference on the client handle is bad, and will result in
 	// a deadlock. This makes sure this does not happen.
 
-	x::destroyCallbackFlag::base::guard guard_subscriptions;
+	x::destroy_callback::base::guard guard_subscriptions;
 
 	// Subscribe to the latest news.
 

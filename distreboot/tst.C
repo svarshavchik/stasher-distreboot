@@ -117,7 +117,7 @@ std::string tst_status(const distreboot &instance)
 	auto ret=distrebootObj::ret::create();
 
 	{
-		x::destroyCallbackFlag::base::guard guard;
+		x::destroy_callback::base::guard guard;
 
 		auto status=distrebootObj::args::create();
 
