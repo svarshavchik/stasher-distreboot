@@ -15,7 +15,7 @@ class rebootimplObj : public distrebootObj {
 
 public:
 	rebootimplObj() {}
-	~rebootimplObj() noexcept {}
+	~rebootimplObj() {}
 
 	void do_reboot() override;
 };

@@ -65,7 +65,7 @@ protected:
 		// Create a string to go into the repository
 		std::string toString() const;
 
-		~rebootListObj() noexcept;
+		~rebootListObj();
 	};
 
 	// Some convenience typedefs
@@ -140,7 +140,7 @@ public:
 			    reboot(false), cancel(false), dry_run(false) {}
 		argsObj(const distreboot_options &opts);
 
-		~argsObj() noexcept
+		~argsObj()
 		{
 		}
 
@@ -165,7 +165,7 @@ public:
 
 	public:
 		retObj() : exitcode(0) {}
-		~retObj() noexcept {}
+		~retObj() {}
 
 		std::string message;
 		int exitcode;
@@ -186,7 +186,7 @@ public:
 	typedef x::ref<retObj> ret;
 
 	distrebootObj();
-	~distrebootObj() noexcept;
+	~distrebootObj();
 
 	// The singleton thread.
 	ret run(x::ptr<x::obj> &threadmsgdispatcher_mcguffin,

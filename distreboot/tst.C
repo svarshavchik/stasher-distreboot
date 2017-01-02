@@ -35,7 +35,7 @@ tst_instance::~tst_instance()
 
 void tst_instance::run(const distreboot::base::args &args)
 {
-	thread_ret=x::start_thread(inst, getuid(),
+	thread_ret=x::start_threadmsgdispatcher(inst, getuid(),
 				   distreboot::base::argsptr(args));
 }
 

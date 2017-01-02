@@ -36,7 +36,7 @@ public:
 	meta_container_t container;
 
 	test1distrebootObj() {}
-	~test1distrebootObj() noexcept {}
+	~test1distrebootObj() {}
 
 	void do_dispatch_serverstate(const stasher::clusterstate &state)
 		override

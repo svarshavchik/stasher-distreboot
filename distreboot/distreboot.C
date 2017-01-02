@@ -51,7 +51,7 @@ public:
 	{
 	}
 
-	~serverStatusCallbackObj() noexcept
+	~serverStatusCallbackObj()
 	{
 	}
 
@@ -114,7 +114,7 @@ std::string distrebootObj::rebootListObj::toString() const
 	return s;
 }
 
-distrebootObj::rebootListObj::~rebootListObj() noexcept
+distrebootObj::rebootListObj::~rebootListObj()
 {
 }
 
@@ -124,7 +124,7 @@ distrebootObj::distrebootObj()
 {
 }
 
-distrebootObj::~distrebootObj() noexcept{
+distrebootObj::~distrebootObj(){
 }
 
 // Execution thread. The first singleton instance must have the
