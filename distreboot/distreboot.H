@@ -212,7 +212,7 @@ protected:
 
 // distreboot::base provides some convenience typedefs.
 
-class distrebootBase : public x::ptrrefBase {
+class distrebootBase : public x::ptrref_base {
 
 public:
 
