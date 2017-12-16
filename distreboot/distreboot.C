@@ -409,7 +409,7 @@ void distrebootObj::dispatch_instance(uid_t uid,
 		o << "Quorum status: " << x::tostring(connection_state)
 		  << std::endl;
 	}
-	o << "Reboot command: " << reboot_cmd.getValue() << std::endl;
+	o << "Reboot command: " << reboot_cmd.get() << std::endl;
 
 	if (heartbeatp)
 	{

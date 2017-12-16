@@ -22,7 +22,7 @@ public:
 
 void rebootimplObj::do_reboot()
 {
-	std::string cmd=reboot_cmd.getValue();
+	std::string cmd=reboot_cmd.get();
 
 	LOG_INFO("Executing " << cmd);
 
@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 	if (getuid() != 0)
 	{
 		std::cerr << "Only root can run \""
-			  << reboot_cmd.getValue() << "\"" << std::endl;
+			  << reboot_cmd.get() << "\"" << std::endl;
 		exit(1);
 	}
 
