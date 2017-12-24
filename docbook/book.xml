@@ -7,7 +7,7 @@
 <!ENTITY distreboot "<application>distreboot</application>">
 <!ENTITY stasher "<ulink url='http://www.libcxx.org/stasher/'><application>stasher</application></ulink>">
 <!ENTITY libx "<ulink url='http://www.libcxx.org/'><application><emphasis>LIBCXX</emphasis></application></ulink>">
-<!ENTITY freebsdver "FreeBSD 9">
+<!ENTITY freebsdver "FreeBSD 10">
 <!ENTITY freebsdverdir "<filename>packaging/freebsd9/databases/stasher-distreboot</filename>">
 <!ENTITY freebsdprefix "/usr/local">
 

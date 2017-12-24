@@ -60,6 +60,8 @@ uninstall-hook:
 
 if HAVE_DOCBOOK
 docs: html/book.css html/.htaccess
+	chcon -R -t httpd_sys_content_t html 2>/dev/null || true
+	rsync -a -X html/. ~/www/www.courier-mta.org/stasher-distreboot
 
 distreboot.8: docbook/distreboot.xml
 	rm -rf manpages
@@ -83,13 +85,11 @@ html/book.css: $(wildcard docbook/*.xml)
 		--param local.l10n.xml 'document("'`pwd`/docbook/l10.xml'")' \
 		$(srcdir)/docbook/docbook.xsl \
 		$(srcdir)/docbook/book.xml
-	-rm -f html/* 2>/dev/null >/dev/null || :
-	mkdir -p html
-	mv html.tmp/* html
-	rm -rf html.tmp
-	links --dump html/INSTALL.html >INSTALL.tmp
+	links --dump html.tmp/INSTALL.html >INSTALL.tmp
 	mv -f INSTALL.tmp INSTALL
-	$(INSTALL) -m 0644 $(srcdir)/docbook/book.css html
+	$(INSTALL) -m 0644 $(srcdir)/docbook/book.css html.ymp
+	rm -rf html
+	mv html.tmp html
 endif
 
 .PHONY: rpm

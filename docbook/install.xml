@@ -25,7 +25,7 @@ See COPYING for distribution information.
 	  </simpara>
 
 	  <simpara>
-	    <ulink url="https://lists.fedorahosted.org/mailman/listinfo/libcxx-stasher-users">Mailing list</ulink>
+	    <ulink url="https://lists.libcxx.org/mailman/listinfo/stasher-users_lists.libcxx.org">Mailing list</ulink>
 	    </simpara>
 
 	  <simpara>
@@ -136,10 +136,12 @@ properties --set /usr/local/etc/distreboot.properties /usr/local/sbin/distreboot
 
     <para>
       &distreboot; depends on &stasher;, of course, and &libx;, which
-      currently builds only on Linux, with an exception that it also builds on
-      &freebsdver;. There's a <filename>Makefile</filename> in the
-      &distreboot; that you can use to try to build &distreboot;
-      on &freebsdver;.
+      currently builds only on Linux. An earliver version of &libx; was
+      also ported to
+      &freebsdver;, but has not been maintained to-date.
+      Any patches required for porting to the current version are welcome,
+      This appendix
+      contains the last build instructions and notes as of &freebsdver;:
     </para>
 
     <itemizedlist>
