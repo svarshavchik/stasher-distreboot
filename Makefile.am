@@ -87,7 +87,7 @@ html/book.css: $(wildcard docbook/*.xml)
 		$(srcdir)/docbook/book.xml
 	links --dump html.tmp/INSTALL.html >INSTALL.tmp
 	mv -f INSTALL.tmp INSTALL
-	$(INSTALL) -m 0644 $(srcdir)/docbook/book.css html.ymp
+	$(INSTALL) -m 0644 $(srcdir)/docbook/book.css html.tmp
 	rm -rf html
 	mv html.tmp html
 endif
@@ -116,9 +116,8 @@ rpm:
 www: html
 	rsync -a --delete-after html/. ~/www/www.courier-mta.org/stasher-distreboot/.
 
-tag:
+upload:
 	git tag -s -a @PACKAGE@/@VERSION@/`date +%Y%m%d%H%M%S` -m 'Tag version @VERSION@'
-
-scp:
 	rm -f @PACKAGE@-@VERSION@.tar.bz2.sig; gpg --detach-sign --default-key mrsam@courier-mta.com @PACKAGE@-@VERSION@.tar.bz2; test -f @PACKAGE@-@VERSION@.tar.bz2.sig || exit 1
-	scp @PACKAGE@-@VERSION@.tar.bz2 @PACKAGE@-@VERSION@.tar.bz2.sig fedorahosted.org:libcxx
+	pag upload @PACKAGE@-@VERSION@.tar.bz2
+	pag upload @PACKAGE@-@VERSION@.tar.bz2.sig

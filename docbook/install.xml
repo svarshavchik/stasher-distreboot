@@ -8,7 +8,7 @@ See COPYING for distribution information.
 <chapter id="INSTALL">
   <title>Installation</title>
 
-  <informaltable id="externallinks">
+  <informaltable class="externallinks">
     <thead cols="1">
       <tr>
 	<th>
@@ -21,7 +21,7 @@ See COPYING for distribution information.
       <tr>
 	<td>
 	  <simpara>
-	    <ulink url="https://fedorahosted.org/released/libcxx/">Download</ulink>
+	    <ulink url="https://releases.pagure.org/stasher-distreboot/">Download</ulink>
 	  </simpara>
 
 	  <simpara>
@@ -29,12 +29,9 @@ See COPYING for distribution information.
 	    </simpara>
 
 	  <simpara>
-	    <ulink url="http://git.fedorahosted.org/git/libcxx.git">fedorahosted</ulink> or
-	    <ulink url="https://github.com/svarshavchik/libcxx.git">GitHUB</ulink>
+	    <ulink url="https://pagure.io/stasher-distreboot.git">fedorahosted</ulink> or
+	    <ulink url="https://github.com/svarshavchik/stasher-distreboot.git">GitHUB</ulink>
 	    <acronym>GIT</acronym>
-	  </simpara>
-	  <simpara>
-	    (<quote>libcxx/stasher-distreboot</quote> branch).
 	  </simpara>
 
 	  <simpara>
