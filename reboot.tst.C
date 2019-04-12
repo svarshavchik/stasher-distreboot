@@ -77,7 +77,7 @@ static void test1(test_options &opts)
 		auto tran=stasher::client::base::transaction::create();
 
 		tran->newobj(distrebootObj::rebootlist_object,
-			     fakereboot->toString());
+			     fakereboot->to_string());
 
 		auto res=client->put(tran);
 
@@ -131,7 +131,7 @@ static void test1(test_options &opts)
 
 		tran->updobj(distrebootObj::rebootlist_object,
 			     lock->value->uuid,
-			     lock->value->toString());
+			     lock->value->to_string());
 	}
 
 	auto res=client->put(tran);
@@ -186,7 +186,7 @@ static void test2(test_options &opts)
 		auto transaction=stasher::client::base::transaction::create();
 
 		transaction->newobj(distrebootObj::heartbeat_object,
-				    fake_heartbeat->toString());
+				    fake_heartbeat->to_string());
 
 		auto res=client->put(transaction);
 
@@ -314,7 +314,7 @@ static void test3(test_options &opts)
 				::create();
 
 			transaction->newobj(distrebootObj::heartbeat_object,
-					    fake_heartbeat->toString());
+					    fake_heartbeat->to_string());
 
 			auto res=client->put(transaction);
 

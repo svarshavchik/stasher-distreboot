@@ -63,7 +63,7 @@ protected:
 		rebootListObj(const x::uuid &uuidArg);
 
 		// Create a string to go into the repository
-		std::string toString() const;
+		std::string to_string() const;
 
 		~rebootListObj();
 	};

@@ -102,7 +102,7 @@ distrebootObj::rebootListObj::rebootListObj(const x::uuid &uuidArg)
 	LOG_FATAL("Reboot list object corrupted, removing it");
 }
 
-std::string distrebootObj::rebootListObj::toString() const
+std::string distrebootObj::rebootListObj::to_string() const
 {
 	std::string s;
 	std::back_insert_iterator<std::string> iter(s);
@@ -310,7 +310,7 @@ void distrebootObj::dispatch_instance(uid_t uid,
 
 		auto tran=stasher::client::base::transaction::create();
 
-		tran->newobj(rebootlist_object, result.first->toString());
+		tran->newobj(rebootlist_object, result.first->to_string());
 
 		// Put it. The functor captures msg by value, so that its
 		// parameters do not go out of scope until the request
@@ -590,7 +590,7 @@ void distrebootObj::do_just_rebooted()
 			LOG_INFO("Next node to reboot should be "
 				 << list.front());
 			tran->updobj(rebootlist_object, lock->value->uuid,
-				     lock->value->toString());
+				     lock->value->to_string());
 		}
 	}
 
