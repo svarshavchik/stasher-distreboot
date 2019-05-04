@@ -82,7 +82,7 @@ static void test1(test_options &opts)
 		auto res=client->put(tran);
 
 		if (res->status != stasher::req_processed_stat)
-			throw EXCEPTION(x::tostring(res->status));
+			throw EXCEPTION(x::to_string(res->status));
 	}
 
 	auto manager=stasher::manager::create();
@@ -136,10 +136,10 @@ static void test1(test_options &opts)
 
 	auto res=client->put(tran);
 
-	std::cerr << "STATUS: " << x::tostring(res->status)
+	std::cerr << "STATUS: " << x::to_string(res->status)
 		  << std::endl;
 	if (res->status != stasher::req_processed_stat)
-		throw EXCEPTION(x::tostring(res->status));
+		throw EXCEPTION(x::to_string(res->status));
 
 	std::cout << "Waiting for the distreboot instance to stop" << std::endl;
 
@@ -191,7 +191,7 @@ static void test2(test_options &opts)
 		auto res=client->put(transaction);
 
 		if (res->status != stasher::req_processed_stat)
-			throw EXCEPTION(x::tostring(res->status));
+			throw EXCEPTION(x::to_string(res->status));
 	}
 
 	tst_nodes<1, test1instance> nodes;
@@ -319,7 +319,7 @@ static void test3(test_options &opts)
 			auto res=client->put(transaction);
 
 			if (res->status != stasher::req_processed_stat)
-				throw EXCEPTION(x::tostring(res->status));
+				throw EXCEPTION(x::to_string(res->status));
 			res->newuuid;
 		});
 

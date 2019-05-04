@@ -324,7 +324,7 @@ void distrebootObj::dispatch_instance(uid_t uid,
 						     req_processed_stat)
 							 return;
 						 retArg->message=
-							 x::tostring(res->
+							 x::to_string(res->
 								     status)
 							 + "\n";
 						 retArg->exitcode=1;
@@ -362,7 +362,7 @@ void distrebootObj::dispatch_instance(uid_t uid,
 					 (const stasher::putresults &res)
 					 {
 						 retArg->message=
-							 x::tostring(res->
+							 x::to_string(res->
 								     status)
 							 + "\n";
 						 if (res->status != stasher::
@@ -393,7 +393,7 @@ void distrebootObj::dispatch_instance(uid_t uid,
 
 	std::ostringstream o;
 
-	o << "Repository connection status: " << x::tostring(connection_status)
+	o << "Repository connection status: " << x::to_string(connection_status)
 	  << std::endl;
 
 	if (connection_info_received && connection_state_received)
@@ -406,7 +406,7 @@ void distrebootObj::dispatch_instance(uid_t uid,
 		o << "Repository master node: " << connection_state.master
 		  << std::endl;
 
-		o << "Quorum status: " << x::tostring(connection_state)
+		o << "Quorum status: " << x::to_string(connection_state)
 		  << std::endl;
 	}
 	o << "Reboot command: " << reboot_cmd.get() << std::endl;
@@ -602,7 +602,7 @@ void distrebootObj::do_just_rebooted()
 		 (const stasher::putresults &res)
 		 {
 			 LOG_TRACE("Rebootlist update processed: "
-				   + x::tostring(res->status));
+				   + x::to_string(res->status));
 			 if (res->status == stasher::req_rejected_stat)
 			 {
 				 me->again_just_rebooted();

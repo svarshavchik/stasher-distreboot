@@ -108,7 +108,7 @@ void tst_clean(const stasher::client &client)
 		auto res=client->put(transaction);
 
 		if (res->status != stasher::req_processed_stat)
-			throw EXCEPTION(x::tostring(res->status));
+			throw EXCEPTION(x::to_string(res->status));
 	}
 }
 
