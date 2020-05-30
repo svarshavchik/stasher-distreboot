@@ -144,15 +144,16 @@ public:
 		{
 		}
 
-		template<typename iter_type> void serialize(iter_type &iter)
+		template<typename ptr_type, typename iter_type>
+		static void serialize(ptr_type ptr, iter_type &iter)
 		{
-			iter(start);
-			iter(stop);
-			iter(reboot);
-			iter(cancel);
-			iter(dry_run);
-			iter(node);
-			iter(drop);
+			iter(ptr->start);
+			iter(ptr->stop);
+			iter(ptr->reboot);
+			iter(ptr->cancel);
+			iter(ptr->dry_run);
+			iter(ptr->node);
+			iter(ptr->drop);
 		}
 	};
 
@@ -176,10 +177,11 @@ public:
 		{
 		}
 
-		template<typename iter_type> void serialize(iter_type &iter)
+		template<typename ptr_type, typename iter_type>
+		static void serialize(ptr_type ptr, iter_type &iter)
 		{
-			iter(message);
-			iter(exitcode);
+			iter(ptr->message);
+			iter(ptr->exitcode);
 		}
 	};
 

@@ -61,7 +61,8 @@ uninstall-hook:
 if HAVE_DOCBOOK
 docs: html/book.css html/.htaccess
 	chcon -R -t httpd_sys_content_t html 2>/dev/null || true
-	rsync -a -X html/. ~/www/www.courier-mta.org/stasher-distreboot
+	rsync -a -X --delete-after html/. ~/www/hostrocket/libcxx.org/stasher-distreboot
+
 
 distreboot.8: docbook/distreboot.xml
 	rm -rf manpages
