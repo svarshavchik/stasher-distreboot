@@ -23,11 +23,11 @@ See COPYING for distribution information.
 	  <simpara>
 	    <ulink url="https://releases.pagure.org/stasher-distreboot/">Download</ulink>
 	  </simpara>
-
+<!--
 	  <simpara>
 	    <ulink url="https://lists.libcxx.org/mailman/listinfo/stasher-users_lists.libcxx.org">Mailing list</ulink>
 	    </simpara>
-
+-->
 	  <simpara>
 	    <ulink url="https://pagure.io/stasher-distreboot.git">Pagure</ulink> or
 	    <ulink url="https://github.com/svarshavchik/stasher-distreboot.git">GitHUB</ulink>
