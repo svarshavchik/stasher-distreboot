@@ -128,66 +128,6 @@ properties --set /usr/local/etc/distreboot.properties /usr/local/sbin/distreboot
     </listitem>
   </orderedlist>
 
-  <section id="freebsdport">
-    <title>Porting and compatibility notes</title>
-
-    <para>
-      &distreboot; depends on &stasher;, of course, and &libx;, which
-      currently builds only on Linux. An earliver version of &libx; was
-      also ported to
-      &freebsdver;, but has not been maintained to-date.
-      Any patches required for porting to the current version are welcome,
-      This appendix
-      contains the last build instructions and notes as of &freebsdver;:
-    </para>
-
-    <itemizedlist>
-      <listitem>
-	<para>
-	  The &stasher; package must already be installed (with &libx;).
-	</para>
-      </listitem>
-
-      <listitem>
-	<para>
-	  Copy the &distreboot; tarball to
-	  <filename>/usr/ports/distfiles</filename>.
-	</para>
-      </listitem>
-
-      <listitem>
-	<para>
-	  Extract the tarball's contents into a temporary directory, then from
-	  the &freebsdverdir; subdirectory run
-	  <command>make makesum</command> followed by
-	  <command>make install</command> (or
-	  <command>make package</command>).
-	</para>
-      </listitem>
-
-      <listitem>
-	<para>
-	  Add <quote>distreboot_enable=YES</quote> to
-	  <filename>/etc/rc.conf</filename>.
-	  This starts &distreboot; when the server boots.
-	</para>
-      </listitem>
-
-      <listitem>
-	<para>
-	  If the server has more than one object repository node directory
-	  (and multiple instances of the &stasher; server), &distreboot;
-	  needs to know which one to use.
-	  Put <quote>--node <replaceable>directory</replaceable></quote>
-	  in <filename>&freebsdprefix;/etc/distrebootrc</filename>.
-	  If <filename>&freebsdprefix;/etc/distrebootrc</filename> exists,
-	  <filename>&freebsdprefix;/etc/rc.d/distreboot</filename> sets its
-	  contents as additional parameters to
-	  &distreboot;.
-	</para>
-      </listitem>
-    </itemizedlist>
-  </section>
 </chapter>
 <!--
 Local Variables:

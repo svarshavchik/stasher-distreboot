@@ -1,0 +1,20 @@
+Source: stasher-distreboot
+Priority: optional
+Maintainer: Sam Varshavchik <mrsam@courier-mta.com>
+Build-Depends: debhelper-compat (= 13),
+	       perl:any,
+	       libstasher-dev
+Standards-Version: 4.6.0
+Section: contrib/libs
+Homepage: https://www.libcxx.org/
+Rules-Requires-Root: no
+
+Package: stasher-distreboot
+Section: contrib/admin
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+ stasher
+Description: Coordinate a reboot of multiple servers
+ This package installs a daemon that uses the stasher object repository cluster.
+ This daemon gets installed on each server in the cluster, and implements a
+ coordinated reboot of all the servers in the cluster, one at a time.

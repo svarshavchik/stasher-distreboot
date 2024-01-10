@@ -1,4 +1,0 @@
-if test "$2" = "DEINSTALL"
-then
-	${PKG_PREFIX}/etc/rc.d/distreboot stop
-fi

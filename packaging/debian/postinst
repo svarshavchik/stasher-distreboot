@@ -1,0 +1,10 @@
+#! /bin/sh
+
+set -e
+
+if test "$1" = "configure"
+then
+	/usr/bin/properties --set /etc/distreboot.properties /usr/sbin/distreboot
+fi
+
+#DEBHELPER#

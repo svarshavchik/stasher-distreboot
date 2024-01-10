@@ -13,10 +13,16 @@ EXTRA_DIST=COPYING COPYING.GPL INSTALL distreboot.8\
 	packaging/fedora/stasher-distreboot.spec \
 	packaging/fedora/stasher-distreboot.spec.in \
         packaging/fedora/stasher-distreboot.service.in \
-	packaging/freebsd9/databases/stasher-distreboot/Makefile \
-	packaging/freebsd9/databases/stasher-distreboot/pkg-descr \
-	packaging/freebsd9/databases/stasher-distreboot/pkg-plist \
-	packaging/freebsd9/databases/stasher-distreboot/files/distreboot.in
+	debuild \
+	packaging/debian/lintian-overrides.allow-errors \
+	packaging/debian/stasher-distreboot.lintian-overrides \
+	packaging/debian/changelog \
+	packaging/debian/rules \
+	packaging/debian/copyright \
+	packaging/debian/control \
+	packaging/debian/postinst \
+	packaging/debian/source/format \
+	packaging/debian/stasher-distreboot.service
 
 noinst_LIBRARIES=libdistreboot.a
 libdistreboot_a_SOURCES=distreboot.C distreboot.H
@@ -61,7 +67,7 @@ uninstall-hook:
 if HAVE_DOCBOOK
 docs: html/book.css html/.htaccess
 	chcon -R -t httpd_sys_content_t html 2>/dev/null || true
-	rsync -a -X --delete-after html/. ~/www/hostrocket/libcxx.org/stasher-distreboot
+	test -d ~/www/hostrocket || exit 0; rsync -a -X --delete-after html/. ~/www/hostrocket/libcxx.org/stasher-distreboot
 
 
 distreboot.8: docbook/distreboot.xml
@@ -86,7 +92,7 @@ html/book.css: $(wildcard docbook/*.xml)
 		--param local.l10n.xml 'document("'`pwd`/docbook/l10.xml'")' \
 		$(srcdir)/docbook/docbook.xsl \
 		$(srcdir)/docbook/book.xml
-	links --dump html.tmp/INSTALL.html >INSTALL.tmp
+	elinks --dump html.tmp/INSTALL.html >INSTALL.tmp
 	mv -f INSTALL.tmp INSTALL
 	$(INSTALL) -m 0644 $(srcdir)/docbook/book.css html.tmp
 	rm -rf html
@@ -113,6 +119,22 @@ rpm:
 		--define '__spec_prep_pre %{___build_pre}' \
 		--define "extrarelease .`date '+%Y%m%d%H%M%S'`" @PACKAGE@-@VERSION@.tar.bz2
 	sh $$HOME/bin/rpmrepos.sh
+
+.PHONY: deb
+
+deb: dist
+	rm -rf deb
+	mkdir deb
+	cp stasher-distreboot-@VERSION@.tar.bz2 deb
+	cd deb; set -e; tar xf stasher-distreboot-@VERSION@.tar.bz2; cd stasher-distreboot-@VERSION@; \
+                RELEASE="`date +%Y%m%d%H%M%S`" \
+		./debuild -us -uc
+	rm -rf deb.new; mv deb/*/deb deb.new
+	rm -rf deb; mv deb.new deb
+	$$HOME/bin/debrepos.sh
+
+dist-hook:
+	chmod +x $(distdir)/debuild
 
 www: html
 	rsync -a --delete-after html/. ~/www/www.courier-mta.org/stasher-distreboot/.

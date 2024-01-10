@@ -2,7 +2,7 @@
 # See COPYING for distribution information.
 
 AC_PREREQ([2.71])
-AC_INIT([stasher-distreboot],[0.09.20210503],[mrsam@courier-mta.com])
+AC_INIT([stasher-distreboot],[0.10],[mrsam@courier-mta.com])
 AM_INIT_AUTOMAKE(dist-bzip2 foreign)
 AC_CONFIG_SRCDIR([distreboot.C])
 AC_CONFIG_HEADERS([distreboot_config.h])
@@ -24,5 +24,7 @@ AC_DEFINE_UNQUOTED(REBOOTCMD,$REBOOTCMD,[Command that gets executed to trigger a
 AM_CONDITIONAL(HAVE_DOCBOOK,[test -d ${srcdir}/docbook])
 AC_CONFIG_FILES(Makefile
 	packaging/fedora/stasher-distreboot.spec
-	packaging/fedora/stasher-distreboot.service)
+	packaging/fedora/stasher-distreboot.service
+	debuild
+)
 AC_OUTPUT

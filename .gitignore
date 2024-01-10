@@ -11,6 +11,8 @@ config.guess
 config.status
 config.sub
 configure
+/deb
+/debuild
 depcomp
 distreboot
 distreboot_config.h

@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+
+LIBCXX_VERSION=@LIBCXX_VERSION@
+SOVERSION=@SOVERSION@
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	dh_auto_configure -- CC=@CC@ CXX=@CXX@ --localstatedir=/var/local
+
+override_dh_auto_test:
+	:
+override_dh_builddeb:
+	dh_builddeb -- $(DEB_BUILDDEB_OPTIONS)
+
+override_dh_auto_install:
+	dh_auto_install
+	mkdir -p debian/stasher-distreboot/lib/systemd/system
+	cp debian/stasher-distreboot.service \
+		debian/stasher-distreboot/lib/systemd/system

@@ -1,3 +1,0 @@
-This package installs a daemon that uses the stasher object repository cluster.
-This daemon gets installed on each server in the cluster, and implements a
-coordinated reboot of all the servers in the cluster, one at a time.

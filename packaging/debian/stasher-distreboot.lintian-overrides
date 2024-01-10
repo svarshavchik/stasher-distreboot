@@ -1,0 +1,14 @@
+#
+# This is libcxx's installation convention
+#
+custom-library-search-path RUNPATH /usr/lib/x86_64-linux-gnu/libcxx*
+#
+# This package normally installed files here.
+#
+non-standard-dir-in-var var/local/
+file-in-unusual-dir var/local/stasher/apps/distreboot.stasher.courier-mta.com
+
+#
+# This is my own executable.
+#
+command-with-path-in-maintainer-script /usr/bin/properties (plain script) [postinst:7]
