@@ -1,13 +1,16 @@
 #
 # This is libcxx's installation convention
 #
-custom-library-search-path RUNPATH /usr/lib/x86_64-linux-gnu/libcxx*
+custom-library-search-path RUNPATH /usr/lib/*/libcxx*
 #
 # This package normally installed files here.
 #
-non-standard-dir-in-var var/local/
-file-in-unusual-dir var/local/stasher/apps/distreboot.stasher.courier-mta.com
-
+non-standard-dir-in-var [var/local/]
+file-in-unusual-dir [var/local/stasher/apps/distreboot.stasher.courier-mta.com]
+#
+#  Man pages generated from DocBook source via a stylesheet.
+#
+groff-message *
 #
 # This is my own executable.
 #
