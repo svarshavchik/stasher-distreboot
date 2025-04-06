@@ -12,6 +12,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: stasher-devel
 BuildRequires: systemd-rpm-macros
 BuildRequires: systemd
+BuildRequires: perl
 Requires: %{_localstatedir}/stasher/apps
 Requires(pre): systemd-units
 Requires(post): systemd-units
@@ -83,5 +84,5 @@ fi
 %{_localstatedir}/lib/rpm-state/*
 
 %changelog
-* Sun Jun 17 2012 Sam Varshavchik <mrsam@octopus.email-scan.com> - distreboot-1
+* @DATE@ Sam Varshavchik <mrsam@octopus.email-scan.com> - distreboot-1
 - Initial build.

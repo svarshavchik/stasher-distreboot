@@ -21,6 +21,12 @@ REBOOTCMD='"'"$REBOOTCMD"'"'
 
 AC_DEFINE_UNQUOTED(REBOOTCMD,$REBOOTCMD,[Command that gets executed to trigger a reboot])
 
+env LC_ALL=C perl -e 'use POSIX qw(strftime); print strftime("DATE=\"%a %b %d %Y\"; DATEFULL=\"%a, %d %b %Y %H:%M:%S %z\"", localtime)' >configure.date
+. ./configure.date
+rm configure.date
+AC_SUBST(DATE)
+AC_SUBST(DATEFULL)
+
 AM_CONDITIONAL(HAVE_DOCBOOK,[test -d ${srcdir}/docbook])
 AC_CONFIG_FILES(Makefile
 	packaging/fedora/stasher-distreboot.spec
